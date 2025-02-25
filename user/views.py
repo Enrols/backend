@@ -1,10 +1,9 @@
 from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny
-from .serializers import ForgotPasswordSerializer, ResetPasswordSerializer, LoginOtpSerializer, LoginOtpVerifySerializer
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from .serializers import ForgotPasswordSerializer, ResetPasswordSerializer, LoginOtpSerializer, LoginOtpVerifySerializer, StudentSerializer, InstituteAdminSerializer
 from django.shortcuts import get_object_or_404
-from .models import User, Otp
+from .models import Student, Otp
 from .utils import create_token, decrypt_token
-from datetime import datetime
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework import status
@@ -12,8 +11,24 @@ from emailclient.sender import send_password_reset_email, send_verification_emai
 from rest_framework_simplejwt.tokens import RefreshToken
 import constants
 from django.utils import timezone
+from smsclient.sender import send_otp_twilio
+from .utils import format_phone_number
 
-datetime
+class ProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        if user.is_student:
+            serializer = StudentSerializer(user)
+        elif user.is_institute:
+            serializer = InstituteAdminSerializer(user)
+        else:
+            return Response({"error": "Invalid user type"}, status=400)
+
+        return Response(serializer.data)
+    
+    
 class LoginOtpView(APIView):
     permission_classes = [AllowAny]
     serializer_class = LoginOtpSerializer 
@@ -22,22 +37,24 @@ class LoginOtpView(APIView):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         
-        phone_number = serializer.validated_data('phone_number')
-        user = get_object_or_404(User, phone_number=phone_number)
+        phone_number = serializer.validated_data['phone_number']
+        phone_number = format_phone_number(phone_number=phone_number)
+        user = get_object_or_404(Student, phone_number=phone_number)
         
         otp = Otp(phone_number=phone_number)
         
         token = create_token({
             'phone_number': phone_number,
             'otp': otp.otp,
-            'exp': otp.created_at + constants.OTP_EXP_TIME,
+            'exp': otp.get_expiration_time(),
         })
         
         # todo write logic to send sms
+        send_otp_twilio(phone_number=phone_number, otp=otp.otp)
         
         return Response({ 'token': token })
         
-
+    
 class LoginOtpVerifyView(APIView):
     permission_classes = [AllowAny]
     serializer_class = LoginOtpVerifySerializer
@@ -46,7 +63,7 @@ class LoginOtpVerifyView(APIView):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         
-        otp = serializer.validated_data('otp')
+        otp = serializer.validated_data['otp']
         
         data = decrypt_token(token)
         if data['status'] is False:
@@ -56,7 +73,7 @@ class LoginOtpVerifyView(APIView):
         decoded_otp = payload['otp']
         phone_number = payload['phone_number']
         
-        user = get_object_or_404(User, phone_number=phone_number)
+        user = get_object_or_404(Student, phone_number=phone_number)
         
         if (decoded_otp == otp):
             refresh_token = RefreshToken.for_user(user=user)
@@ -79,7 +96,7 @@ class ForgotPasswordView(APIView):
         serializer.is_valid(raise_exception=True)
         
         email = serializer.validated_data['email']
-        user = get_object_or_404(User, email=email)
+        user = get_object_or_404(Student, email=email)
         
         token = create_token({
             'email': user.email,
@@ -116,19 +133,18 @@ class ResetPasswordView(APIView):
         serializer.is_valid(raise_exception=True)
         
         email = payload['email']
-        user = get_object_or_404(User, email)
+        user = get_object_or_404(Student, email)
         password = serializer.validated_data['password']
         
         user.set_password(password)
-        datetime
         return Response({ 'message': 'reset password successful' })
         
 
 
 class VerifyEmailView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         user = request.user
-        
         token = create_token({
             'email': user.email,
             'exp': timezone.now() + constants.VERIFY_EMAIL_EXP_TIME
@@ -156,7 +172,7 @@ class VerifyEmailTokenView(APIView):
             raise ValidationError("email not found in token")
         
         email = payload['email']
-        user = get_object_or_404(User, email=email)
+        user = get_object_or_404(Student, email=email)
         
         user.email_verified = True 
         user.save()
