@@ -18,9 +18,16 @@ import environ
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = environ.Env(
-    DEBUG=(bool, False)
+    DEBUG=(bool, False),
+    DATABASE_ENGINE=(str, 'sqlite3')
 )
 
+DJANGO_ENV = os.getenv('DJANGO_ENV', 'development')
+
+if DJANGO_ENV == 'production':
+    environ.Env.read_env(os.path.join(BASE_DIR, '.env.production'))
+else:
+    environ.Env.read_env(os.path.join(BASE_DIR, '.env.development'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -29,6 +36,17 @@ env = environ.Env(
 SECRET_KEY = env('JWT_SECRET')
 FERNET_KEY = env('FERNET_KEY')
 DEBUG = env('DEBUG')
+
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = env('EMAIL_HOST_USER')
+FRONTEND_URL = env('FRONTEND_URL')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
@@ -138,12 +156,25 @@ SIMPLE_JWT = {
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+DATABASE_ENGINE = env('DATABASE_ENGINE')
+if DATABASE_ENGINE == "postgres":
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': env('POSTGRES_DB'),
+            'USER': env('POSTGRES_USER'),
+            'PASSWORD': env('POSTGRES_PASSWORD'),
+            'HOST': env('POSTGRES_HOST'),
+            'PORT': env('POSTGRES_PORT'),
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'data' / 'dev' / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
@@ -183,8 +214,8 @@ USE_TZ = True
 
 PUBLIC_DIR = os.path.join(BASE_DIR, 'public')
 STATIC_URL = '/static/'
-STATICFILES_DIR = [os.path.join(PUBLIC_DIR, 'static')]
-STATIC_ROOT = os.path.join(PUBLIC_DIR, 'staticfiles')
+# STATICFILES_DIRS = [os.path.join(PUBLIC_DIR, 'staticfiles')]
+STATIC_ROOT = os.path.join(PUBLIC_DIR, 'static')
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(PUBLIC_DIR, 'media')
@@ -193,11 +224,3 @@ MEDIA_ROOT = os.path.join(PUBLIC_DIR, 'media')
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_USE_TLS = True
-EMAIL_PORT = 587
-EMAIL_HOST_USER = env('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')

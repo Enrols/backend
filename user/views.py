@@ -7,6 +7,8 @@ from .utils import create_token, decrypt_token
 from datetime import datetime, timedelta
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework import status
+from emailclient.sender import send_password_reset_email, send_verification_email
 
 class ForgotPasswordView(APIView):
     permission_classes = [AllowAny]
@@ -25,8 +27,10 @@ class ForgotPasswordView(APIView):
         })
         
         
-        # Todo: logic to send email
-        
+        try:
+            send_password_reset_email(user.email, user.full_name)
+        except:
+            return Response({"error": "Mail server down"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response({ 'message': 'mail sent successfully' })
         
         
@@ -38,7 +42,6 @@ class ResetPasswordView(APIView):
     
     def get(self, request, token):
         data = decrypt_token(token)
-        print(data)
         
         if data['status'] is False:
             raise PermissionDenied("Token not valid")
@@ -65,16 +68,16 @@ class ResetPasswordView(APIView):
 class VerifyEmailView(APIView):
     def get(self, request):
         user = request.user
-        print(user)
         
         token = create_token({
             'email': user.email,
-            'exp': datetime.now() + timedelta(hours=1)
+            'exp': datetime.now() + timedelta(minutes=1)
         })
         
-        print(token)
-        # Todo: logic to send email
-        
+        try:
+            send_verification_email(user.email, user.full_name, token)
+        except:
+            return Response({"error": "Mail server down"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response({ 'message': 'mail sent successfully' })
 
 
@@ -83,7 +86,6 @@ class VerifyEmailTokenView(APIView):
     
     def get(self, request, token):
         data = decrypt_token(token)
-        print(data)
         
         if data['status'] is False:
             raise PermissionDenied("Token not valid")

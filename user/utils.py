@@ -1,8 +1,9 @@
+from cryptography.fernet import Fernet
 import jwt
 from django.conf import settings
 
 JWT_SECRET = settings.SECRET_KEY
-cipher_suite = settings.FERNET_KEY
+cipher_suite = Fernet(settings.FERNET_KEY)
 
 def create_token(payload):
     token = jwt.encode(payload, JWT_SECRET, algorithm='HS256')
