@@ -7,3 +7,11 @@ class ForgotPasswordSerializer(serializers.Serializer):
     
 class ResetPasswordSerializer(serializers.Serializer):
     password = serializers.CharField(max_length=100)
+    
+    
+class LoginOtpSerializer(serializers.Serializer):
+    phone_number = serializers.CharField(max_length=100)
+    
+    
+class LoginOtpVerifySerializer(serializers.Serializer):
+    otp = serializers.CharField(max_length=6)

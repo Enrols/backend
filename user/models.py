@@ -1,6 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
-
+from datetime import datetime
+import constants
+from .utils import generate_otp
+from django.utils import timezone
 class UserManager(BaseUserManager):
     """ Manager for custom user """
 
@@ -51,6 +54,22 @@ class User(AbstractBaseUser, PermissionsMixin):
     
     def __str__(self):
         return f"<< User: {self.email} >>"
+    
+    
+    
+class Otp(models.Model):
+    """ OTP Model"""
+    
+    phone_number = models.CharField(max_length=20, unique=False)
+    otp = models.CharField(max_length=6, unique=False, default=generate_otp())
+    created_at = models.DateTimeField(default=timezone.now())
+    
+    def is_valid(self) -> bool:
+        return (timezone.now()) > self.created_at + constants.OTP_EXP_TIME
+    
+    def __str__(self):
+        return f"<< OTP: {self.phone_number}, {self.otp}, {'(expired)' if self.exp > datetime.now() else ''} >>"
+    
     
     
     
