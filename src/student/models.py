@@ -1,6 +1,7 @@
 from django.db import models
 from utils import format_phone_number
 from user.models import User
+from course.models import Tag, Course
 
 class StudentManager(models.Manager):
     def create_user(self, email, full_name, phone_number, password=None, **other_fields):
@@ -34,6 +35,8 @@ class Student(User):
     
     full_name = models.CharField(max_length=255)
     phone_number = models.CharField(max_length=20, unique=True)
+    selected_tags = models.ManyToManyField(Tag)
+    wishlist = models.ManyToManyField(Course)
     
     email_verified = models.BooleanField(default=False)
     phone_number_verified = models.BooleanField(default=False)

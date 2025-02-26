@@ -7,6 +7,11 @@ def default_duration():
     return timedelta(weeks=2)
 
 
+class Tag(models.Model):
+    name = models.CharField(25, unique=True)
+    # courses[]
+    pass
+
 
 class Course(models.Model):
     class Types(models.TextChoices):
@@ -25,10 +30,17 @@ class Course(models.Model):
     # eligibiilty_criteria[]
     fee_amount = models.IntegerField(validators=[MinValueValidator(0)])
     fee_breakdown = models.FileField(upload_to='../../public/media', blank=True, null=True)
-    
+    tags = models.ManyToManyField(Tag, related_name='courses')
     
     
     REQUIRED_FIELDS = ['name']
+    
+
+class EligibilityCriteria(models.Model):
+    course = models.ForeignKey(Course, null=True, on_delete=models.CASCADE, related_name='eligibility_criteria')
+    detail = models.TextField(blank=False, null=False)
+    
+    REQUIRED_FIELDS = ['detail']
 
 class Batch(models.Model):
     course = models.ForeignKey(Course, null=True, on_delete=models.CASCADE, related_name='batches')
@@ -40,15 +52,6 @@ class Batch(models.Model):
         self.full_clean()
         return super().save(*args, **kwargs)
     
-
-class EligibilityCriteria(models.Model):
-    course = models.ForeignKey(Course, null=True, on_delete=models.CASCADE, related_name='eligibility_criteria')
-    detail = models.TextField(blank=False, null=False)
-    
-    REQUIRED_FIELDS = ['detail']
-
-class Tag(models.Model):
-    pass
 
 
 class WishList(models.Model):

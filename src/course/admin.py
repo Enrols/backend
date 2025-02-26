@@ -2,7 +2,6 @@ from django.contrib import admin
 from .models import Course, Batch, EligibilityCriteria
 from datetime import timedelta
 from django import forms
-from instituteadmin.models import InstituteAdmin
 from user.authentication import get_specific_user
 class BatchInline(admin.TabularInline):
     model = Batch
@@ -50,7 +49,7 @@ class CourseAdmin(admin.ModelAdmin):
         """Automatically set offered_by to request.user for non-superusers."""
         if not request.user.is_superuser:
             institute = get_specific_user(request.user)
-            obj.offered_by = institute  # Set ForeignKey to User instance
+            obj.offered_by = institute
         super().save_model(request, obj, form, change)
     
     
