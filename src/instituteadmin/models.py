@@ -35,7 +35,7 @@ class InstituteAdmin(User):
     
     name = models.CharField(max_length=255, unique=False)
     description = models.TextField(blank=True, null=False, default="")
-    logo = models.ImageField(upload_to='public/media/', blank=True, null=True)
+    logo = models.ImageField(upload_to='../../public/media/', blank=True, null=True)
     details = models.JSONField(default=list, validators=[validate_details])
 
     

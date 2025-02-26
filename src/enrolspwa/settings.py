@@ -75,6 +75,7 @@ INSTALLED_APPS = [
     'student',
     'emailclient',
     'smsclient',
+    'course',
     'test',
 ]
 
