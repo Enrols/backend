@@ -51,8 +51,3 @@ class Batch(models.Model):
     def save(self, *args, **kwargs):
         self.full_clean()
         return super().save(*args, **kwargs)
-    
-
-
-class WishList(models.Model):
-    pass
