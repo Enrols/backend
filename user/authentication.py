@@ -1,5 +1,7 @@
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from user.models import User, Student, InstituteAdmin
+from user.models import User
+from student.models import Student
+from instituteadmin.models import InstituteAdmin
 
 def get_specific_user(user):
     """Return the correct subclass instance based on account_type."""
