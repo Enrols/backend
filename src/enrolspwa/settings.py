@@ -21,7 +21,8 @@ PARENT_DIR = BASE_DIR.parent
 
 env = environ.Env(
     DEBUG=(bool, False),
-    DATABASE_ENGINE=(str, 'sqlite3')
+    DATABASE_ENGINE=(str, 'sqlite3'),
+    SMS_TYPE=(str, 'TEST_FUNC')
 )
 
 DJANGO_ENV = os.getenv('DJANGO_ENV', 'development')
@@ -39,7 +40,7 @@ SECRET_KEY = env('JWT_SECRET')
 FERNET_KEY = env('FERNET_KEY')
 DEBUG = env('DEBUG')
 
-
+SMS_TYPE = env('SMS_TYPE')
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
@@ -74,6 +75,7 @@ INSTALLED_APPS = [
     'student',
     'emailclient',
     'smsclient',
+    'test',
 ]
 
 MIDDLEWARE = [
@@ -232,6 +234,6 @@ MEDIA_ROOT = os.path.join(PUBLIC_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Twiliio set up
-TWILIO_ACCOUNT_SID = env('TWILIO_ACCOUNT_SID')
-TWILIO_AUTH_TOKEN = env('TWILIO_AUTH_TOKEN')
-TWILIO_PHONE_NUMBER = env('TWILIO_PHONE_NUMBER')
+TWILIO_ACCOUNT_SID = env('TWILIO_ACCOUNT_SID', default='')
+TWILIO_AUTH_TOKEN = env('TWILIO_AUTH_TOKEN', default='')
+TWILIO_PHONE_NUMBER = env('TWILIO_PHONE_NUMBER', default='')

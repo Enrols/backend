@@ -7,5 +7,5 @@ data/**
 .env*
 !.env.example
 
-*/migrations/*
+**/migrations/**
 !*/migrations/__init__.py

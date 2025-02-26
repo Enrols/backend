@@ -2,7 +2,7 @@ from django.db import models
 from django.utils import timezone
 import constants
 from utils import generate_otp
-    
+from enum import Enum
 class Otp(models.Model):
     """ OTP Model"""
     
@@ -19,4 +19,7 @@ class Otp(models.Model):
         return f"<< OTP: {self.phone_number}, {self.otp}, {'(expired)' if self.exp > timezone.now() else ''} >>"
     
     
-    
+class SmsType(Enum):
+    TEST = 'TEST_FUNC'
+    TWILIO = 'TWILIO'
+    FAST2SMS = 'FAST2SMS'
