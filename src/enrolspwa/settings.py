@@ -17,6 +17,8 @@ import environ
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+PARENT_DIR = BASE_DIR.parent
+
 env = environ.Env(
     DEBUG=(bool, False),
     DATABASE_ENGINE=(str, 'sqlite3')
@@ -25,9 +27,9 @@ env = environ.Env(
 DJANGO_ENV = os.getenv('DJANGO_ENV', 'development')
 
 if DJANGO_ENV == 'production':
-    environ.Env.read_env(os.path.join(BASE_DIR, '.env.production'))
+    environ.Env.read_env(os.path.join(PARENT_DIR, '.env.production'))
 else:
-    environ.Env.read_env(os.path.join(BASE_DIR, '.env.development'))
+    environ.Env.read_env(os.path.join(PARENT_DIR, '.env.development'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -176,7 +178,7 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'data' / 'dev' / 'db.sqlite3',
+            'NAME': PARENT_DIR / 'data' / 'dev' / 'db.sqlite3',
         }
     }
 
@@ -216,7 +218,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-PUBLIC_DIR = os.path.join(BASE_DIR, 'public')
+PUBLIC_DIR = os.path.join(PARENT_DIR, 'public')
 STATIC_URL = '/static/'
 # STATICFILES_DIRS = [os.path.join(PUBLIC_DIR, 'staticfiles')]
 STATIC_ROOT = os.path.join(PUBLIC_DIR, 'static')

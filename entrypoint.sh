@@ -7,6 +7,7 @@ while ! nc -z postgresdb 5432; do
 done
 echo "postgresdb is up - running migrations and collectstatic"
 
+cd src
 python manage.py makemigrations --noinput
 python manage.py migrate --noinput
 python manage.py collectstatic --noinput
