@@ -8,7 +8,7 @@ from utils import create_token, decrypt_token
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 from rest_framework_simplejwt.tokens import RefreshToken
-from smsclient.sender import send_otp
+from smsclient.sender import SmsClient
 from .serializers import RegisterSerializer, RegisterOtpSerializer
 from rest_framework import status
 
@@ -31,7 +31,8 @@ class LoginOtpView(APIView):
             'exp': otp.get_expiration_time(),
         })
         
-        send_otp(phone_number=phone_number, otp=otp.otp)
+        sms_client = SmsClient()
+        sms_client.send(phone_number=phone_number, otp=otp.otp)
         
         return Response({ 'token': token })
         
@@ -90,16 +91,18 @@ class RegisterOtpView(APIView):
         serializer.is_valid(raise_exception=True)
         
         student = serializer.save()
+        phone_number = student.phone_number
         
-        otp = Otp(phone_number=student.phone_number)
+        otp = Otp(phone_number=phone_number)
         
         token = create_token({
-            'phone_number': student.phone_number,
+            'phone_number': phone_number,
             'otp': otp.otp,
             'exp': otp.get_expiration_time(),
         })
         
-        send_otp(phone_number=student.phone_number, otp=otp.otp)
+        sms_client = SmsClient()
+        sms_client.send(phone_number=phone_number, otp=otp.otp)
         
         
         return Response({ 'message': 'User created successfully', 'token': token }, status=status.HTTP_201_CREATED)
