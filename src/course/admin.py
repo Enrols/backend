@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Course, Batch, EligibilityCriteria
+from .models import Course, Batch, EligibilityCriterion, Tag, Location
 from datetime import timedelta
 from django import forms
 from user.authentication import get_specific_user
@@ -7,8 +7,8 @@ class BatchInline(admin.TabularInline):
     model = Batch
     extra = 1
 
-class EligibilityCriteriaInline(admin.TabularInline):
-    model = EligibilityCriteria
+class EligibilityCriterionInline(admin.TabularInline):
+    model = EligibilityCriterion
     extra = 1
     
 class CourseDurationForm(forms.ModelForm):
@@ -43,7 +43,7 @@ class CourseAdmin(admin.ModelAdmin):
     list_filter = ('mode', 'offered_by')
     search_fields = ('name', 'offered_by__email')  
     prepopulated_fields = {"slug": ("name",)}
-    inlines = [BatchInline, EligibilityCriteriaInline]
+    inlines = [BatchInline, EligibilityCriterionInline]
 
     def save_model(self, request, obj, form, change):
         """Automatically set offered_by to request.user for non-superusers."""
@@ -77,11 +77,51 @@ class BatchAdmin(admin.ModelAdmin):
     list_filter = ('course',)
     search_fields = ('course__name', 'location')
 
-class EligibilityCriteriaAdmin(admin.ModelAdmin):
+class EligibilityCriterionAdmin(admin.ModelAdmin):
     list_display = ('course', 'detail')
     search_fields = ('course__name', 'detail')
 
+class TagAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
 
+    def has_module_permission(self, request):
+        return request.user.is_superuser
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+    
+class LocationAdmin(admin.ModelAdmin):
+    list_display = ('name', 'image')
+    search_fields = ('name',)
+
+
+    def has_module_permission(self, request):
+        return request.user.is_superuser
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+admin.site.register(Tag, TagAdmin)
 admin.site.register(Course, CourseAdmin)
 admin.site.register(Batch, BatchAdmin)
-admin.site.register(EligibilityCriteria, EligibilityCriteriaAdmin)
+admin.site.register(EligibilityCriterion, EligibilityCriterionAdmin)
+admin.site.register(Location, LocationAdmin)

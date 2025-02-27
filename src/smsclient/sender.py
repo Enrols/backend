@@ -3,9 +3,6 @@ from django.conf import settings
 import constants
 from .models import SmsType
 
-def send_otp(phone_number: str, otp: str) -> str:
-    return ""
-
 
 class SmsClient:
     def __init__(self):

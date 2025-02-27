@@ -4,6 +4,7 @@ db.*
 data/**
 **/__pycache__/**
 **/static*/**
+**/media*/**
 .env*
 !.env.example
 

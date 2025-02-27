@@ -29,6 +29,10 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin):
     """ Custom user model """
+    
+    class Meta:
+        verbose_name_plural = 'Users'
+    
     class Types(models.TextChoices):
         STUDENT = 'STUDENT', 'Student'
         INSTITUTE_ADMIN = 'INSTITUTE_ADMIN', 'InstituteAdmin'
@@ -49,4 +53,4 @@ class User(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = 'email'
 
     def __str__(self):
-        return f"<< User: {self.email} >>"
+        return f"User: {self.email}"

@@ -1,6 +1,7 @@
 from django.db import models
 from user.models import User
 from utils import validate_details
+import constants
 
 # Create your models here.
 class InstituteManager(models.Manager):
@@ -28,15 +29,18 @@ class InstituteManager(models.Manager):
         queryset = queryset.filter(account_type=User.Types.INSTITUTE_ADMIN) 
         return queryset 
     
-    
 
 class InstituteAdmin(User):
+    class Meta:
+        verbose_name_plural = 'Institute Admins'
+        
+        
     objects = InstituteManager()
     
     name = models.CharField(max_length=255, unique=False)
     description = models.TextField(blank=True, null=False, default="")
-    logo = models.ImageField(upload_to='../../public/media/', blank=True, null=True)
-    details = models.JSONField(default=list, validators=[validate_details])
+    logo = models.ImageField(upload_to=constants.IMAGE_UPLOAD_PATH, blank=True, null=True)
+    # details = models.JSONField(default=list, validators=[validate_details])
 
     
     def save(self , *args , **kwargs):
@@ -48,4 +52,17 @@ class InstituteAdmin(User):
     
     
     def __str__(self):
-        return f"<< Inst Admin: {self.email} >>"
+        return f"Inst Admin: {self.email}"
+    
+class Detail(models.Model):
+    class Meta:
+        verbose_name_plural = 'Details'
+        
+        
+    detail = models.CharField(max_length=100, unique=False, null=False, blank=False)
+    info = models.CharField(max_length=255, blank=False, null=False, unique=False)
+    admin = models.ForeignKey(InstituteAdmin, on_delete=models.DO_NOTHING, null=True, blank=True)
+    
+    def __str__(self):
+        return f"{{ '{self.detail}': '{self.info}' }}"
+    

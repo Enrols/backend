@@ -8,6 +8,8 @@ import string
 def generate_secure_string(length=16):
     characters = string.ascii_letters + string.digits  # A-Z, a-z, 0-9
     return ''.join(secrets.choice(characters) for _ in range(length))
+
+
 class LoginOtpSerializer(serializers.Serializer):
     phone_number = serializers.CharField(max_length=100)
     

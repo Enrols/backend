@@ -5,6 +5,8 @@ from utils import generate_otp
 from enum import Enum
 class Otp(models.Model):
     """ OTP Model"""
+    class Meta:
+        verbose_name_plural = 'One Time Passwords'
     
     phone_number = models.CharField(max_length=20, unique=False)
     otp = models.CharField(max_length=6, unique=False, default=generate_otp)
@@ -16,7 +18,7 @@ class Otp(models.Model):
         return self.created_at + constants.OTP_EXP_TIME
     
     def __str__(self):
-        return f"<< OTP: {self.phone_number}, {self.otp}, {'(expired)' if self.exp > timezone.now() else ''} >>"
+        return f"OTP: {self.phone_number}, {self.otp}, {'(expired)' if self.exp > timezone.now() else ''}"
     
     
 class SmsType(Enum):

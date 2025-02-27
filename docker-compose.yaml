@@ -18,6 +18,7 @@ services:
       - .env.production
     volumes:
       - static_volume:/app/public/static
+      - media_volume:/app/public/media
     expose:
       - "8000"
 
@@ -29,9 +30,12 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
       - static_volume:/app/public/static
+      - media_volume:/app/public/media
+
     ports:
       - "80:80"
 
 volumes:
   postgres_data:
   static_volume:
+  media_volume:
