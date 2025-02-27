@@ -1,7 +1,7 @@
 from django.db import models
 from utils import format_phone_number
 from user.models import User
-from course.models import Tag, Course
+from course.models import Tag, Course, Location
 import constants
 
 
@@ -67,7 +67,7 @@ class Student(User):
     wishlist = models.ManyToManyField(Course)
     interests = models.ManyToManyField(Interest)
     current_education_level = models.ForeignKey(EducationLevel, on_delete=models.DO_NOTHING, null=True)
-    
+    prefered_locations = models.ManyToManyField(Location)
     
     email_verified = models.BooleanField(default=False)
     phone_number_verified = models.BooleanField(default=False)

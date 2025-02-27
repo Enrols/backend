@@ -33,14 +33,14 @@ class Course(models.Model):
     duration = models.DurationField(default=default_duration)
     # batches[]
     syllabus = models.FileField(upload_to=constants.FILE_UPLOAD_PATH, blank=True, null=True)
-    slug = models.CharField(max_length=20, null=False, default='')
+    slug = models.CharField(max_length=20, null=False, default='', unique=True)
     # eligibiilty_criteria[]
     fee_amount = models.IntegerField(validators=[MinValueValidator(0)])
     fee_breakdown = models.FileField(upload_to=constants.FILE_UPLOAD_PATH, blank=True, null=True)
     tags = models.ManyToManyField(Tag, related_name='courses')
     
     
-    def __str__(self):
+    def __sfee_breakdowntr__(self):
         offered_by_name = self.offered_by.name if self.offered_by else 'N/A'
         return f"Course: {self.course} by {offered_by_name}"
     
@@ -60,7 +60,7 @@ class Location(models.Model):
         verbose_name_plural = 'Locations'
         
         
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True, null=False)
     image = models.ImageField(upload_to=constants.IMAGE_UPLOAD_PATH)
     
     
