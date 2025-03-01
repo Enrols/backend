@@ -62,7 +62,7 @@ class Detail(models.Model):
         
     detail = models.CharField(max_length=100, unique=False, null=False, blank=False)
     info = models.CharField(max_length=255, blank=False, null=False, unique=False)
-    admin = models.ForeignKey(InstituteAdmin, on_delete=models.CASCADE, null=True, blank=True) # delete details if InstitueAdmin deleted
+    admin = models.ForeignKey(InstituteAdmin, on_delete=models.CASCADE, null=True, blank=True, related_name='details') # delete details if InstitueAdmin deleted
     
     def __str__(self):
         return f"{{ '{self.detail}': '{self.info}' }}"

@@ -22,6 +22,7 @@ class Course(models.Model):
     name = models.CharField(max_length=255)
     mode = models.CharField(max_length=20, choices=Types.choices, default=Types.ON_CAMPUS)
     description = models.TextField(default='')
+    image = models.ImageField(upload_to=constants.IMAGE_UPLOAD_PATH, blank=True, null=True)
     # duration
     # batches[]
     syllabus = models.FileField(upload_to=constants.FILE_UPLOAD_PATH, blank=True, null=True)
@@ -48,7 +49,7 @@ class Duration(models.Model):
     course = models.OneToOneField(Course,blank=False, null=False, on_delete=models.CASCADE, related_name='duration')
 
     def get_duration(self):
-        return f"Duration: {self.years} years, {self.months} months, {self.weeks} weeks, {self.days} days, {self.hours} hours"
+        return f"{self.years} years, {self.months} months, {self.weeks} weeks, {self.days} days, {self.hours} hours"
 
     def __str__(self):
         return f"Duration for course {self.course.name}: {self.years} years, {self.months} months, {self.weeks} weeks, {self.days} days, {self.hours} hours"
