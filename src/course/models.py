@@ -16,8 +16,7 @@ class Tag(models.Model):
     # courses[]
     def __str__(self):
         return f"Tag: {self.name}"
-    
-
+ 
 class Course(models.Model):
     class Meta:
         verbose_name_plural = 'Courses'
@@ -32,7 +31,7 @@ class Course(models.Model):
     name = models.CharField(max_length=255)
     mode = models.CharField(max_length=20, choices=Types.choices, default=Types.ON_CAMPUS)
     description = models.TextField(default='')
-    duration = models.DurationField(default=default_duration)
+    # duration
     # batches[]
     syllabus = models.FileField(upload_to=constants.FILE_UPLOAD_PATH, blank=True, null=True)
     slug = models.CharField(max_length=20, null=False, default='', unique=True)
@@ -41,11 +40,32 @@ class Course(models.Model):
     fee_breakdown = models.FileField(upload_to=constants.FILE_UPLOAD_PATH, blank=True, null=True)
     tags = models.ManyToManyField(Tag, related_name='courses')
     
-    
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)    
+
     def __str__(self):
         offered_by_name = self.offered_by.name if self.offered_by else 'N/A'
         return f"Course: {self.name} by {offered_by_name}"
     
+   
+class Duration(models.Model):
+    class Meta:
+        verbose_name_plural = 'Durations'
+    
+    hours = models.IntegerField(help_text="Enter duration in hours", default=0,validators=[MinValueValidator(0)])
+    days = models.IntegerField(help_text="Enter duration in days", default=0, validators=[MinValueValidator(0)])
+    weeks = models.IntegerField(help_text="Enter duration in weeks", default=2, validators=[MinValueValidator(0)])
+    months = models.IntegerField(help_text="Enter duration in months", default=0, validators=[MinValueValidator(0)])
+    years = models.IntegerField(help_text="Enter duration in years", default=0, validators=[MinValueValidator(0)])
+    course = models.OneToOneField(Course,blank=False, null=False, on_delete=models.CASCADE, related_name='duration')
+
+    def get_duration(self):
+        return f"Duration: {self.years} years, {self.months} months, {self.weeks} weeks, {self.days} days, {self.hours} hours"
+
+    def __str__(self):
+        return f"Duration for course {self.course.name}: {self.years} years, {self.months} months, {self.weeks} weeks, {self.days} days, {self.hours} hours"
+
 
 class EligibilityCriterion(models.Model):
     class Meta:
