@@ -1,8 +1,9 @@
 from django.contrib import admin
 from .models import Course, Batch, EligibilityCriterion, Tag, Location, Duration
-from datetime import timedelta
-from django import forms
+# from datetime import timedelta
+# from django import forms
 from user.authentication import get_specific_user
+
 class BatchInline(admin.TabularInline):
     model = Batch
     extra = 1
@@ -14,7 +15,8 @@ class EligibilityCriterionInline(admin.TabularInline):
 
 class DurationInline(admin.TabularInline):
     model = Duration
-    extra = 1
+    min_num = 1
+    can_delete = False
 
 # class CourseDurationForm(forms.ModelForm):
 #     hours = forms.IntegerField(help_text="Enter duration in hours", initial=0, min_value=0)
@@ -121,8 +123,8 @@ class DurationAdmin(admin.ModelAdmin):
     
 
 class TagAdmin(admin.ModelAdmin):
-    list_display = ('name',)
-    search_fields = ('name',)
+    list_display = ('name', 'type')
+    search_fields = ('name', 'type')
 
     def has_module_permission(self, request):
         return request.user.is_superuser

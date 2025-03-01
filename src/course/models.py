@@ -11,17 +11,72 @@ def default_duration():
 class Tag(models.Model):
     class Meta:
         verbose_name_plural = 'Tags'
-        
+    
+    class Types(models.TextChoices):
+        EXAM = 'EXAM', 'exam'
+        STREAM = 'STREAM', 'stream'
+        SKILL = 'SKILL', 'skill'
+    
     name = models.CharField(max_length=25, unique=True, null=False, default='default-tag')
+    type = models.CharField(max_length=20, choices=Types.choices, default=Types.SKILL)
     # courses[]
+
     def __str__(self):
         return f"Tag: {self.name}"
  
+
+
+class Exam(Tag):
+    class Meta:
+        proxy = True
+        verbose_name_plural = 'Exams'
+
+    def save(self, *args, **kwargs):
+        self.type = Tag.Types.EXAM
+        return super().save(*args, **kwargs)
+    
+    class ExamManager(models.Manager):
+        def get_queryset(self):
+            return super().get_queryset().filter(type=Tag.Types.EXAM)
+
+    objects = ExamManager()
+
+class Stream(Tag):
+    class Meta:
+        proxy = True
+        verbose_name_plural = 'Streams'
+
+    def save(self, *args, **kwargs):
+        self.type = Tag.Types.STREAM
+        return super().save(*args, **kwargs)
+    
+    class StreamManager(models.Manager):
+        def get_queryset(self):
+            return super().get_queryset().filter(type=Tag.Types.STREAM)
+
+    objects = StreamManager()
+
+class Skill(Tag):
+    class Meta:
+        proxy = True
+        verbose_name_plural = 'Skills'
+
+    def save(self, *args, **kwargs):
+        self.type = Tag.Types.SKILL
+        return super().save(*args, **kwargs)
+    
+    class SkillManager(models.Manager):
+        def get_queryset(self):
+            return super().get_queryset().filter(type=Tag.Types.SKILL)
+
+    objects = SkillManager()
+
+
+
 class Course(models.Model):
     class Meta:
         verbose_name_plural = 'Courses'
-        
-        
+         
     class Types(models.TextChoices):
         ON_CAMPUS = 'ON_CAMPUS', 'Campus'
         ONLINE = 'ONLINE', 'Online',
@@ -40,10 +95,6 @@ class Course(models.Model):
     fee_breakdown = models.FileField(upload_to=constants.FILE_UPLOAD_PATH, blank=True, null=True)
     tags = models.ManyToManyField(Tag, related_name='courses')
     
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        return super().save(*args, **kwargs)    
-
     def __str__(self):
         offered_by_name = self.offered_by.name if self.offered_by else 'N/A'
         return f"Course: {self.name} by {offered_by_name}"
