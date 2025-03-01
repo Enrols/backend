@@ -66,7 +66,7 @@ class Student(User):
     selected_tags = models.ManyToManyField(Tag)
     wishlist = models.ManyToManyField(Course)
     interests = models.ManyToManyField(Interest)
-    current_education_level = models.ForeignKey(EducationLevel, on_delete=models.DO_NOTHING, null=True)
+    current_education_level = models.ForeignKey(EducationLevel, on_delete=models.PROTECT, null=True) # do not allow deletion of education level if it has a student
     prefered_locations = models.ManyToManyField(Location)
     
     email_verified = models.BooleanField(default=False)

@@ -77,9 +77,29 @@ class BatchAdmin(admin.ModelAdmin):
     list_filter = ('course',)
     search_fields = ('course__name', 'location')
 
+    def get_queryset(self, request):
+        """Restrict non-superusers to only their own batches."""
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        
+        institute = get_specific_user(request.user)
+        return qs.filter(course__in=institute.offered_courses.all())
+    
+
 class EligibilityCriterionAdmin(admin.ModelAdmin):
     list_display = ('course', 'detail')
     search_fields = ('course__name', 'detail')
+
+    def get_queryset(self, request):
+        """Restrict non-superusers to El. Cr. of their own courses only."""
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        
+        institute = get_specific_user(request.user)
+        return qs.filter(course__in=institute.offered_courses.all())
+    
 
 class TagAdmin(admin.ModelAdmin):
     list_display = ('name',)

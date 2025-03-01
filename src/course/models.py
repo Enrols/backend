@@ -14,6 +14,8 @@ class Tag(models.Model):
         
     name = models.CharField(max_length=25, unique=True, null=False, default='default-tag')
     # courses[]
+    def __str__(self):
+        return f"Tag: {self.name}"
     
 
 class Course(models.Model):
@@ -40,9 +42,9 @@ class Course(models.Model):
     tags = models.ManyToManyField(Tag, related_name='courses')
     
     
-    def __sfee_breakdowntr__(self):
+    def __str__(self):
         offered_by_name = self.offered_by.name if self.offered_by else 'N/A'
-        return f"Course: {self.course} by {offered_by_name}"
+        return f"Course: {self.name} by {offered_by_name}"
     
 
 class EligibilityCriterion(models.Model):
@@ -72,8 +74,8 @@ class Batch(models.Model):
     class Meta:
         verbose_name_plural = 'Batches'
             
-    course = models.ForeignKey(Course, null=True, on_delete=models.DO_NOTHING, related_name='batches')
-    location = models.ForeignKey(Location, null=True, on_delete=models.DO_NOTHING)
+    course = models.ForeignKey(Course, null=True, on_delete=models.CASCADE, related_name='batches')
+    location = models.ForeignKey(Location, null=True, on_delete=models.PROTECT, related_name='batches')
     commencement_date = models.DateField(null=True)
     discount = models.FloatField(default=0, validators=[MinValueValidator(0), MaxValueValidator(1)])
     
