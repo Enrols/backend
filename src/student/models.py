@@ -1,31 +1,10 @@
 from django.db import models
 from utils import format_phone_number
 from user.models import User
-from course.models import Tag, Course, Location
-import constants
+from course.models import  Course
+from preference.models import Tag, Location, Interest, EducationLevel
 
 
-class Interest(models.Model):
-    class Meta:
-        verbose_name_plural = 'Interests'
-        
-        
-    name = models.CharField(max_length=25, unique=True, null=False, default='default-interest')
-    image = models.ImageField(upload_to=constants.IMAGE_UPLOAD_PATH, blank=True, null=True)
-    
-    def __str__(self):
-        return f"Interest: {self.name}"
-    
-class EducationLevel(models.Model):
-    class Meta:
-        verbose_name_plural = 'Education Levels'
-        
-        
-    name = models.CharField(max_length=25, unique=True, null=False, default='default-edu-level')
-    image = models.ImageField(upload_to=constants.IMAGE_UPLOAD_PATH, blank=True, null=True)
-    
-    def __str__(self):
-        return f"Education Level: {self.name}"
 class StudentManager(models.Manager):
     def create_user(self, email, full_name, phone_number, password=None, **other_fields):
         if not email:

@@ -1,7 +1,5 @@
 from django.contrib import admin
-from .models import Course, Batch, EligibilityCriterion, Tag, Location, Duration
-# from datetime import timedelta
-# from django import forms
+from .models import Course, Batch, Duration, EligibilityCriterion
 from user.authentication import get_specific_user
 
 class BatchInline(admin.TabularInline):
@@ -92,7 +90,7 @@ class BatchAdmin(admin.ModelAdmin):
         
         institute = get_specific_user(request.user)
         return qs.filter(course__in=institute.offered_courses.all())
-    
+
 
 class EligibilityCriterionAdmin(admin.ModelAdmin):
     list_display = ('course', 'detail')
@@ -106,7 +104,7 @@ class EligibilityCriterionAdmin(admin.ModelAdmin):
         
         institute = get_specific_user(request.user)
         return qs.filter(course__in=institute.offered_courses.all())
-    
+   
 
 class DurationAdmin(admin.ModelAdmin):
     list_display = ('course', 'years', 'months', 'weeks', 'days', 'hours' )
@@ -120,50 +118,9 @@ class DurationAdmin(admin.ModelAdmin):
         
         institute = get_specific_user(request.user)
         return qs.filter(course__in=institute.offered_courses.all())
-    
-
-class TagAdmin(admin.ModelAdmin):
-    list_display = ('name', 'type')
-    search_fields = ('name', 'type')
-
-    def has_module_permission(self, request):
-        return request.user.is_superuser
-
-    def has_view_permission(self, request, obj=None):
-        return request.user.is_superuser
-
-    def has_add_permission(self, request):
-        return request.user.is_superuser
-
-    def has_change_permission(self, request, obj=None):
-        return request.user.is_superuser
-
-    def has_delete_permission(self, request, obj=None):
-        return request.user.is_superuser
-    
-class LocationAdmin(admin.ModelAdmin):
-    list_display = ('name', 'image')
-    search_fields = ('name',)
-
-
-    def has_module_permission(self, request):
-        return request.user.is_superuser
-
-    def has_view_permission(self, request, obj=None):
-        return request.user.is_superuser
-
-    def has_add_permission(self, request):
-        return request.user.is_superuser
-
-    def has_change_permission(self, request, obj=None):
-        return request.user.is_superuser
-
-    def has_delete_permission(self, request, obj=None):
-        return request.user.is_superuser
-
-admin.site.register(Tag, TagAdmin)
+ 
+   
 admin.site.register(Course, CourseAdmin)
 admin.site.register(Batch, BatchAdmin)
 admin.site.register(EligibilityCriterion, EligibilityCriterionAdmin)
-admin.site.register(Location, LocationAdmin)
 admin.site.register(Duration, DurationAdmin)

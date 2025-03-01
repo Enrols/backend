@@ -1,76 +1,12 @@
 from django.db import models
-from datetime import timedelta
 from django.core.validators import MinValueValidator, MaxValueValidator
 from instituteadmin.models import InstituteAdmin
 import constants
+from datetime import timedelta
+from preference.models import Tag, Location
 
 def default_duration():
     return timedelta(weeks=2)
-
-
-class Tag(models.Model):
-    class Meta:
-        verbose_name_plural = 'Tags'
-    
-    class Types(models.TextChoices):
-        EXAM = 'EXAM', 'exam'
-        STREAM = 'STREAM', 'stream'
-        SKILL = 'SKILL', 'skill'
-    
-    name = models.CharField(max_length=25, unique=True, null=False, default='default-tag')
-    type = models.CharField(max_length=20, choices=Types.choices, default=Types.SKILL)
-    # courses[]
-
-    def __str__(self):
-        return f"Tag: {self.name}"
- 
-
-
-class Exam(Tag):
-    class Meta:
-        proxy = True
-        verbose_name_plural = 'Exams'
-
-    def save(self, *args, **kwargs):
-        self.type = Tag.Types.EXAM
-        return super().save(*args, **kwargs)
-    
-    class ExamManager(models.Manager):
-        def get_queryset(self):
-            return super().get_queryset().filter(type=Tag.Types.EXAM)
-
-    objects = ExamManager()
-
-class Stream(Tag):
-    class Meta:
-        proxy = True
-        verbose_name_plural = 'Streams'
-
-    def save(self, *args, **kwargs):
-        self.type = Tag.Types.STREAM
-        return super().save(*args, **kwargs)
-    
-    class StreamManager(models.Manager):
-        def get_queryset(self):
-            return super().get_queryset().filter(type=Tag.Types.STREAM)
-
-    objects = StreamManager()
-
-class Skill(Tag):
-    class Meta:
-        proxy = True
-        verbose_name_plural = 'Skills'
-
-    def save(self, *args, **kwargs):
-        self.type = Tag.Types.SKILL
-        return super().save(*args, **kwargs)
-    
-    class SkillManager(models.Manager):
-        def get_queryset(self):
-            return super().get_queryset().filter(type=Tag.Types.SKILL)
-
-    objects = SkillManager()
-
 
 
 class Course(models.Model):
@@ -126,19 +62,7 @@ class EligibilityCriterion(models.Model):
     detail = models.TextField(blank=False, null=False)
     
     def __str__(self):
-        return f"El. Cri. {self.detail}"
-    
-class Location(models.Model):
-    class Meta:
-        verbose_name_plural = 'Locations'
-        
-        
-    name = models.CharField(max_length=255, unique=True, null=False)
-    image = models.ImageField(upload_to=constants.IMAGE_UPLOAD_PATH)
-    
-    
-    def __str__(self):
-        return f"Location: {self.name}"
+        return f"El. Cri. {self.detail}"  
 
 
 class Batch(models.Model):
