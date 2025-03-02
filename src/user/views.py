@@ -1,6 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from .serializers import ForgotPasswordSerializer, ResetPasswordSerializer
+from .serializers import ForgotPasswordSerializer, ResetPasswordSerializer, LoginOtpSerializer, LoginOtpVerifySerializer, RegisterOtpSerializer, RegisterSerializer
 from student.serializers import StudentSerializer
 from instituteadmin.serializers import InstituteAdminSerializer
 from django.shortcuts import get_object_or_404
@@ -12,8 +12,31 @@ from rest_framework import status
 from emailclient.sender import send_password_reset_email, send_verification_email
 import constants
 from django.utils import timezone
+from smsclient.models import Otp
+from smsclient.sender import SmsClient
+from rest_framework_simplejwt.tokens import RefreshToken
 
 class ProfileView(APIView):
+    """
+    Retrieve the profile information for the authenticated user.
+
+    Permissions:
+        - Requires the user to be authenticated (IsAuthenticated).
+
+    HTTP Methods:
+        - GET: Returns the user's profile data based on their role.
+
+    User Types:
+        - If the user is a student, returns serialized data using `StudentSerializer`.
+        - If the user is an institute admin, returns serialized data using `InstituteAdminSerializer`.
+
+    Responses:
+        - 200 OK: Successfully returns the user's profile data.
+        - 400 Bad Request: If the user type is invalid.
+
+    Example Usage:
+        GET /api/profile/
+    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -26,6 +49,9 @@ class ProfileView(APIView):
             return Response({"error": "Invalid user type"}, status=400)
 
         return Response(serializer.data)
+    
+
+
 class ForgotPasswordView(APIView):
     permission_classes = [AllowAny]
     serializer_class = ForgotPasswordSerializer
@@ -118,3 +144,130 @@ class VerifyEmailTokenView(APIView):
         
         return Response({ 'message': 'email verified successfully' })
     
+
+
+
+
+
+class LoginOtpView(APIView):
+    permission_classes = [AllowAny]
+    serializer_class = LoginOtpSerializer 
+    
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        phone_number = serializer.validated_data['phone_number']
+        user = get_object_or_404(Student, phone_number=phone_number)
+        
+        otp = Otp(phone_number=phone_number)
+        
+        token = create_token({
+            'phone_number': phone_number,
+            'otp': otp.otp,
+            'exp': otp.get_expiration_time(),
+        })
+        
+        sms_client = SmsClient()
+        sms_client.send(phone_number=phone_number, otp=otp.otp)
+        
+        return Response({ 'token': token })
+        
+    
+class LoginOtpVerifyView(APIView):
+    permission_classes = [AllowAny]
+    serializer_class = LoginOtpVerifySerializer
+    
+    def post(self, request, token):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        otp = serializer.validated_data['otp']
+        
+        data = decrypt_token(token)
+        if data['status'] is False:
+            raise PermissionDenied("Token not valid")
+        
+        payload = data['payload']
+        decoded_otp = payload['otp']
+        phone_number = payload['phone_number']
+        
+        user = get_object_or_404(Student, phone_number=phone_number)
+        
+        if (decoded_otp == otp):
+            refresh_token = RefreshToken.for_user(user=user)
+            access_token = refresh_token.access_token
+            return Response({
+                'access_token': str(access_token),
+                'refresh_token': str(refresh_token),
+            })
+        else:
+            raise PermissionDenied('OTP not valid')
+        
+        
+        
+        
+class RegisterView(APIView):
+    permission_classes = [AllowAny]
+    serializer_class = RegisterSerializer
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        serializer.save()
+        
+        return Response({ 'message': 'User created successfully' }, status=status.HTTP_201_CREATED)
+        
+
+
+class RegisterOtpView(APIView):
+    permission_classes = [AllowAny]
+    serializer_class = RegisterOtpSerializer
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        student = serializer.save()
+        phone_number = student.phone_number
+        
+        otp = Otp(phone_number=phone_number)
+        
+        token = create_token({
+            'phone_number': phone_number,
+            'otp': otp.otp,
+            'exp': otp.get_expiration_time(),
+        })
+        
+        sms_client = SmsClient()
+        sms_client.send(phone_number=phone_number, otp=otp.otp)
+        
+        
+        return Response({ 'message': 'User created successfully', 'token': token }, status=status.HTTP_201_CREATED)
+    
+    
+class PhoneNumberVerifyView(APIView):
+    permission_classes = [AllowAny]
+    serializer_class = LoginOtpVerifySerializer
+    
+    def post(self, request, token):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        otp = serializer.validated_data['otp']
+        
+        data = decrypt_token(token)
+        if data['status'] is False:
+            raise PermissionDenied("Token not valid")
+        
+        payload = data['payload']
+        decoded_otp = payload['otp']
+        phone_number = payload['phone_number']
+        
+        user = get_object_or_404(Student, phone_number=phone_number)
+        
+        if (decoded_otp == otp):
+            user.phone_number_verified = True
+            user.save()
+            return Response({'message': "Phone number verified successfully"})
+        else:
+            raise PermissionDenied('OTP not valid')
