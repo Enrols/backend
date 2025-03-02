@@ -4,11 +4,11 @@ from .views import TagListView, TagStreamListView, TagSkillListView, TagExamList
 
 
 urlpatterns = format_suffix_patterns([
-    path('tag/streams/',TagStreamListView.as_view(),name='tag-streams'),
-    path('tag/exams/',TagExamListView.as_view(),name='tag-exams'),
-    path('tag/skills/',TagSkillListView.as_view(),name='tag-skills'),
+    path('tags/streams/',TagStreamListView.as_view(),name='tags-streams'),
+    path('tags/exams/',TagExamListView.as_view(),name='tags-exams'),
+    path('tags/skills/',TagSkillListView.as_view(),name='tags-skills'),
     path('interests/',InterestListView.as_view(), name='interests'),
     path('education-levels/',EducationLevelListView.as_view(),name='education-levels'),
     path('locations/',LocationListView.as_view(),name='locations'),
-    path('tags',TagListView.as_view(),name='tags'),
+    path('tags/',TagListView.as_view(),name='tags'),
 ])
