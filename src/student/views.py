@@ -3,40 +3,74 @@ from django.shortcuts import get_object_or_404
 from preference.models import EducationLevel
 from rest_framework.response import Response
 from rest_framework import status
-from django.db import IntegrityError
-from preference.serializers import TagSerialzer, InterestSerializer, LocationSerializer
+from preference.serializers import TagSerialzer, InterestSerializer, LocationSerializer, EducationLevelSerializer
 from course.serializers import CourseListSerializer
 from user.authentication import IsStudent
-
+from .serializers import TagListRequestSerializer, EducationLevelRequestSerializer, InterestRequestSerializer, LocationRequestSerializer, WishListRequestSerializer
+from preference.models import Interest, Tag, Location
+from course.models import Course
 
 class StudentEducationLevelView(APIView):
     """
-    Handles the student's current education level.
+    Manage the student's current education level.
 
-    Methods:
-        - POST: Sets or updates the student's current education level.
-            
-            Request Data:
-                - education_level_id (int, required): ID of the education level.
+    Permissions:
+    - Only accessible to students (IsStudent).
 
-            Responses:
-                - 201 Created: Education level added successfully.
-                - 400 Bad Request: Missing or invalid education_level_id.
+    HTTP Methods:
+    - POST: Set or update the student's current education level.
+    - DELETE: Remove the student's current education level.
 
-        - DELETE: Removes the student's current education level.
+    Process:
+    - POST:
+        - Validates `education_level_id` from the request payload using `EducationLevelRequestSerializer`.
+        - Fetches the corresponding `EducationLevel` object.
+        - Assigns it to the student's `current_education_level` field.
+        - Saves the student object.
+        - Returns a success response.
+    - DELETE:
+        - Resets the `current_education_level` field to `None`.
+        - Saves the student object.
+        - Returns a success response.
 
-            Responses:
-                - 200 OK: Education level deleted successfully.
-                
+    Responses:
+    - 201 Created: Education level successfully updated.
+    - 200 OK: Education level successfully removed.
+    - 404 Not Found: If the provided `education_level_id` does not exist.
+
+    Example Usage:
+    - GET /api/student/education-level/
+    
+    - POST /api/student/education-level/
+    Payload:
+    ```json
+    {
+        "education_level_id": 2
+    }
+    ```
+
+    - DELETE /api/student/education-level/
     """
+    
     permission_classes = [IsStudent]
+    request_serializer = EducationLevelRequestSerializer
+    response_serializer = EducationLevelSerializer
+    
+    def get(self, request):
+        student = request.user
+        
+        education_level = student.education_level
+        education_level_data = self.response_serializer(education_level)
+
+        return Response(education_level_data.data, status=status.HTTP_200_OK)        
+        
 
     def post(self,request):
         student = request.user
-
-        education_level_id = request.data.get('education_level_id')
-        if not education_level_id:
-            return Response({'message': 'education_level_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = self.request_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        education_level_id = serializer.validated_data['education_level_id']
+        
         
         education_level = get_object_or_404(EducationLevel, id=education_level_id)
         student.current_education_level = education_level
@@ -55,59 +89,86 @@ class StudentEducationLevelView(APIView):
 
 class StudentTagListView(APIView):
     """
-    Manages the tags selected by a student.
+    Manage the student's selected tags.
 
-    Methods:
-        get(request):
-            Retrieves a list of tags selected by the student.
+    Permissions:
+    - Only accessible to students (IsStudent).
 
-            Responses:
-                - 200 OK: List of selected tags.
+    HTTP Methods:
+    - GET: Retrieve the list of selected tags.
+    - POST: Add tags to the student's profile.
+    - DELETE: Remove specific tags from the student's profile.
 
-        post(request):
-            Adds tags to the student's selected tags.
+    Process:
+    - GET:
+        - Retrieves all tags currently selected by the student.
+        - Returns serialized tag data.
+    - POST:
+        - Validates `tag_ids` from the request payload using `TagListRequestSerializer`.
+        - Checks if all provided `tag_ids` exist in the database.
+        - Adds only valid tags to the student's `selected_tags`.
+        - If any `tag_ids` are invalid, returns an error with the missing IDs.
+    - DELETE:
+        - Validates `tag_ids` from the request payload.
+        - Removes the specified tags from the student's `selected_tags`.
 
-            Request Data:
-                - tag_id (list of int, optional): List of tag IDs to add.
+    Responses:
+    - 200 OK: Successfully retrieved or removed tags.
+    - 201 Created: Tags successfully added.
+    - 400 Bad Request: If `tag_ids` are invalid or missing.
 
-            Responses:
-                - 201 Created: Tags added successfully.
-                - 400 Bad Request: Invalid or non-existent tag ID.
+    Example Usage:
+    - GET /api/student/tags/
 
-        delete(request):
-            Removes tags from the student's selected tags.
+    - POST /api/student/tags/
+    Payload:
+    ```json
+    {
+        "tag_ids": [1, 2, 3]
+    }
+    ```
 
-            Request Data:
-                - tag_id (list of int, optional): List of tag IDs to remove.
-
-            Responses:
-                - 200 OK: Tags removed successfully.
+    - DELETE /api/student/tags/
+    Payload:
+    ```json
+    {
+        "tag_ids": [1, 2]
+    }
+    ```
     """
+    
     permission_classes=[IsStudent]
-
+    request_serializer = TagListRequestSerializer
+    response_serializer = TagSerialzer
+    
     def get(self,request):
         student = request.user
 
         tags = student.selected_tags.all()
-        tags_data = TagSerialzer(tags, many=True)
+        tags_data = self.response_serializer(tags, many=True)
 
         return Response(tags_data.data, status=status.HTTP_200_OK)
 
     def post(self,request):
-
-        student=request.user
+        student = request.user
+        serializer = self.request_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        tag_ids = serializer.validated_data['tag_ids']
         
-        tag_ids = request.data.get('tag_id',[]) # There can be no tags also
-        try:
-            student.selected_tags.add(*tag_ids)
-            student.save()
-        except IntegrityError:
-            return Response({'message': 'Tag does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+        existing_tags = set(Tag.objects.filter(id__in=tag_ids).values_list('id', flat=True))
+        missing_tags = set(tag_ids) - existing_tags
         
+        if missing_tags:
+            return Response({'message': f"Invalid tag IDs: {missing_tags}"}, status=status.HTTP_400_BAD_REQUEST)
+    
+        student.selected_tags.add(*existing_tags)
         return Response({'message': 'Tags added successfully'}, status=status.HTTP_201_CREATED)
 
     def delete(self,request):
-        tag_ids = request.data.get('tag_id',[])
+        serializer = self.request_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        tag_ids = serializer.validated_data['tag_ids']
+        
         student = request.user
         for tag_id in tag_ids:
             student.selected_tags.remove(tag_id)
@@ -116,58 +177,89 @@ class StudentTagListView(APIView):
     
 class StudentInterestListView(APIView):
     """
-    Manages the interests selected by a student.
+    Manage the student's selected interests.
 
-    Methods:
-        get(request):
-            Retrieves a list of interests selected by the student.
+    Permissions:
+    - Only accessible to students (IsStudent).
 
-            Responses:
-                - 200 OK: List of selected interests.
+    HTTP Methods:
+    - GET: Retrieve the list of selected interests.
+    - POST: Add interests to the student's profile.
+    - DELETE: Remove specific interests from the student's profile.
 
-        post(request):
-            Adds interests to the student's selected interests.
+    Process:
+    - GET:
+        - Retrieves all interests currently selected by the student.
+        - Returns serialized interest data.
+    - POST:
+        - Validates `interest_ids` from the request payload using `InterestRequestSerializer`.
+        - Checks if all provided `interest_ids` exist in the database.
+        - Adds only valid interests to the student's `interests`.
+        - If any `interest_ids` are invalid, returns an error with the missing IDs.
+    - DELETE:
+        - Validates `interest_ids` from the request payload.
+        - Removes the specified interests from the student's `interests`.
 
-            Request Data:
-                - interest_id (list of int, optional): List of interest IDs to add.
+    Responses:
+    - 200 OK: Successfully retrieved or removed interests.
+    - 201 Created: Interests successfully added.
+    - 400 Bad Request: If `interest_ids` are invalid or missing.
 
-            Responses:
-                - 201 Created: Interests added successfully.
-                - 400 Bad Request: Invalid or non-existent interest ID.
+    Example Usage:
+    - GET /api/student/interests/
 
-        delete(request):
-            Removes interests from the student's selected interests.
+    - POST /api/student/interests/
+    Payload:
+    ```json
+    {
+        "interest_ids": [1, 2, 3]
+    }
+    ```
 
-            Request Data:
-                - interest_id (list of int, optional): List of interest IDs to remove.
-
-            Responses:
-                - 200 OK: Interests removed successfully.
+    - DELETE /api/student/interests/
+    Payload:
+    ```json
+    {
+        "interest_ids": [1, 2]
+    }
+    ```
     """
+    
     permission_classes=[IsStudent]
+    request_seriazlier = InterestRequestSerializer
+    response_serializer = InterestSerializer
 
     def get(self,request):
-        student=request.user
+        student = request.user
         interests = student.interests.all()
-        interests_data = InterestSerializer(interests, many=True)
+        interests_data = self.response_serializer(interests, many=True)
 
         return Response(interests_data.data, status=status.HTTP_200_OK)
 
     def post(self,request):
-        student=request.user
-        interest_ids = request.data.get('interest_id',[]) # There can be no interests also
+        student = request.user
+        serializer = self.request_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        interest_ids = serializer.validated_data['interest_ids']
 
-        try:
-            student.interests.add(*interest_ids)
-            student.save()
-        except IntegrityError:
-            return Response({'message': 'Interest does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+        existing_interests = set(Interest.objects.filter(id__in=interest_ids).values_list('id', flat=True))
+        missing_interests = set(interest_ids) - existing_interests
+        
+        if missing_interests:
+            return Response({'message': f'Invalid interest IDs: {list(missing_interests)}'}, status=status.HTTP_400_BAD_REQUEST)
+
+        student.interests.add(*existing_interests)
         
         return Response({'message': 'Interests added successfully'}, status=status.HTTP_201_CREATED)
     
     def delete(self,request):
-        interest_ids = request.data.get('interest_id',[])
         student = request.user
+        serializer = self.request_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        interest_ids = serializer.validated_data['interest_ids']
+        
         for interest_id in interest_ids:
             student.interests.remove(interest_id)
 
@@ -176,59 +268,85 @@ class StudentInterestListView(APIView):
 
 class StudentLocationListView(APIView):
     """
-    Manages the preferred locations of a student.
+    Manage the student's preferred locations.
 
-    Methods:
-        get(request):
-            Retrieves a list of the student's preferred locations.
+    Permissions:
+    - Only accessible to students (IsStudent).
 
-            Responses:
-                - 200 OK: List of preferred locations.
+    HTTP Methods:
+    - GET: Retrieve the list of preferred locations.
+    - POST: Add locations to the student's preferences.
+    - DELETE: Remove specific locations from the student's preferences.
 
-        post(request):
-            Adds locations to the student's preferred locations.
+    Process:
+    - GET:
+        - Retrieves all locations currently selected by the student.
+        - Returns serialized location data.
+    - POST:
+        - Validates `location_ids` from the request payload using `LocationRequestSerializer`.
+        - Checks if all provided `location_ids` exist in the database.
+        - Adds only valid locations to the student's `preferred_locations`.
+        - If any `location_ids` are invalid, returns an error with the missing IDs.
+    - DELETE:
+        - Validates `location_ids` from the request payload.
+        - Removes the specified locations from the student's `preferred_locations`.
 
-            Request Data:
-                - location_id (list of int, optional): List of location IDs to add.
+    Responses:
+    - 200 OK: Successfully retrieved or removed locations.
+    - 201 Created: Locations successfully added.
+    - 400 Bad Request: If `location_ids` are invalid or missing.
 
-            Responses:
-                - 201 Created: Preferred locations added successfully.
-                - 400 Bad Request: Invalid or non-existent location ID.
+    Example Usage:
+    - GET /api/student/preferred-locations/
 
-        delete(request):
-            Removes locations from the student's preferred locations.
+    - POST /api/student/preferred-locations/
+    Payload:
+    ```json
+    {
+        "location_ids": [1, 2, 3]
+    }
+    ```
 
-            Request Data:
-                - location_id (list of int, optional): List of location IDs to remove.
-
-            Responses:
-                - 200 OK: Preferred locations removed successfully.
+    - DELETE /api/student/preferred-locations/
+    Payload:
+    ```json
+    {
+        "location_ids": [1, 2]
+    }
+    ```
     """
+    
     permission_classes=[IsStudent]
+    request_serializer = LocationRequestSerializer
+    response_serializer = LocationSerializer
 
     def get(self,request):
         student = request.user
         locations = student.prefered_locations.all()
-        serializer = LocationSerializer(locations,many=True)
+        serializer = self.response_serializer(locations,many=True)
         return Response(data=serializer.data,status=status.HTTP_200_OK)
 
     def post(self,request):
         student = request.user
-
-        location_ids = request.data.get('location_id',[]) # There can be no interests also
-
-        try:
-            student.prefered_locations.add(*location_ids)
-            student.save()
-        except IntegrityError:
-            return Response({'message': 'Location does not exist'}, status=status.HTTP_400_BAD_REQUEST)
-
+        serailizer = self.request_serializer(data=request.data)
+        serailizer.is_valid(raise_exception=True)
+        location_ids = serailizer.validated_data['location_ids']
+        
+        existing_locations = set(Location.objects.filter(id__in=location_ids).values_list('id', falt=True))
+        missing_locations = set(location_ids) - existing_locations
+        
+        if missing_locations:
+            return Response({'message': f"Invalid Location IDs: {missing_locations}"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        student.prefered_locations.add(*existing_locations)
         return Response({'message': 'Preferred locations added successfully'}, status=status.HTTP_201_CREATED)
     
     def delete(self,request):
         student = request.user
-
-        location_ids = request.data.get('location_id',[])
+        serailizer = self.request_serializer(data=request.data)
+        serailizer.is_valid(raise_exception=True)
+        location_ids = serailizer.validated_data['location_ids']
+        
         for location_id in location_ids:
             student.prefered_locations.remove(location_id)
         
@@ -237,63 +355,85 @@ class StudentLocationListView(APIView):
 
 class StudentWishListView(APIView):
     """
-    Manages the student's wishlist for courses.
+    Manage the student's wishlist of courses.
 
-    Methods:
-        get(request):
-            Retrieves the courses in the student's wishlist.
+    Permissions:
+    - Only accessible to students (IsStudent).
 
-            Responses:
-                - 200 OK: List of courses in the wishlist.
+    HTTP Methods:
+    - GET: Retrieve the list of courses in the student's wishlist.
+    - POST: Add a course to the student's wishlist.
+    - DELETE: Remove a course from the student's wishlist.
 
-        post(request):
-            Adds a course to the student's wishlist.
+    Process:
+    - GET:
+        - Retrieves all courses currently in the student's wishlist.
+        - Returns serialized course data.
+    - POST:
+        - Validates `course_id` from the request payload using `WishListRequestSerializer`.
+        - Checks if the course exists in the database.
+        - If valid, adds the course to the student's wishlist.
+        - If the course does not exist, returns an error.
+    - DELETE:
+        - Validates `course_id` from the request payload.
+        - Removes the specified course from the student's wishlist.
 
-            Request Data:
-                - course_id (int, required): ID of the course to add.
+    Responses:
+    - 200 OK: Successfully retrieved or removed course from wishlist.
+    - 201 Created: Course successfully added to wishlist.
+    - 400 Bad Request: If `course_id` is invalid or the course does not exist.
 
-            Responses:
-                - 201 Created: Course added to wishlist successfully.
-                - 400 Bad Request: Invalid or non-existent course ID.
+    Example Usage:
+    - GET /api/student/wishlist/
 
-        delete(request):
-            Removes a course from the student's wishlist.
+    - POST /api/student/wishlist/
+    Payload:
+    ```json
+    {
+        "course_id": 1
+    }
+    ```
 
-            Request Data:
-                - course_id (int, required): ID of the course to remove.
-
-            Responses:
-                - 200 OK: Course removed from wishlist successfully.
+    - DELETE /api/student/wishlist/
+    Payload:
+    ```json
+    {
+        "course_id": 1
+    }
+    ```
     """
+    
     permission_classes = [IsStudent]
+    request_serializer = WishListRequestSerializer
+    response_serializer = CourseListSerializer
 
     def get(self, request):
         student = request.user
         courses = student.wishlist.all()
-        serializer = CourseListSerializer(courses, many=True)
+        serializer = self.response_serializer(courses, many=True)
         
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
         student = request.user
+        serializer = self.request_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        course_id = serializer.validated_data['course_id']
 
-        course_id = request.data.get('course_id')
+        if not Course.objects.filter(id=course_id).exists():
+            return Response({'message': 'Course does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if not course_id:
-            return Response({'message': 'course_id is required'}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            student.wishlist.add(course_id)
-            student.save()
-        except IntegrityError:
-            return Response({'message': 'Course does not exist'}, status = status.HTTP_400_BAD_REQUEST)
+        student.wishlist.add(course_id)
 
         return Response({'message': 'Course added to wishlist successfully'}, status=status.HTTP_201_CREATED)
     
     def delete(self, request):
         student = request.user
-
-        course_id = request.data.get('course_id')
+        serializer = WishListRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        course_id = serializer.validated_data['course_id']
         student.wishlist.remove(course_id)
 
         return Response({'message': 'Course deleted from wishlist'},status=status.HTTP_200_OK)

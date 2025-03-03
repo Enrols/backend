@@ -199,7 +199,7 @@ class VerifyEmailTokenView(APIView):
     """
     permission_classes = [AllowAny]
     
-    def get(self, request, token):
+    def get(self, _, token):
         data = decrypt_token(token)
         
         if data['status'] is False:
@@ -248,7 +248,7 @@ class LoginOtpView(APIView):
         serializer.is_valid(raise_exception=True)
         
         phone_number = serializer.validated_data['phone_number']
-        user = get_object_or_404(Student, phone_number=phone_number)
+        get_object_or_404(Student, phone_number=phone_number)
         
         otp = Otp(phone_number=phone_number)
         
