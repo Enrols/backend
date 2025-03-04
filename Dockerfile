@@ -15,6 +15,12 @@ RUN pip install --no-cache-dir gunicorn
 
 COPY . .
 
+RUN find . -path "*/*.sqlite3" -delete
+
+RUN cd src && \
+    find . -path "*/migrations/*.py" -not -name "__init__.py" -delete && \
+    find . -path "*/migrations/*.pyc" -delete
+
 ENV DJANGO_ENV=production
 ENV PYTHONUNBUFFERED=1
 
