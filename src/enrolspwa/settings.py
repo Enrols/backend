@@ -77,6 +77,7 @@ INSTALLED_APPS = [
     'smsclient',
     'course',
     'test',
+    'drf_yasg' # should be at the end
 ]
 
 MIDDLEWARE = [
@@ -161,6 +162,17 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
 }
 
+
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+        }
+    },
+    'USE_SESSION_AUTH': False,
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases

@@ -19,6 +19,7 @@ from django.urls import path, include
 from django.conf.urls.static import static 
 from django.conf import settings
 from django.shortcuts import redirect
+from .swagger import schema_view
 
 urlpatterns = [
     path('', lambda _: redirect('/admin/')),
@@ -27,6 +28,7 @@ urlpatterns = [
     path('auth/student/', include('student.urls')),
     path('auth/institute-admin/', include('instituteadmin.urls')),
     path('courses/', include('course.urls')),
+    path('docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
 ]
 
 if settings.DEBUG:
