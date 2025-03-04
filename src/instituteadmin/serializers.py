@@ -14,6 +14,7 @@ class InstituteAdminSerializer(serializers.ModelSerializer):
     class Meta:
         model = InstituteAdmin
         fields = [
+            'id',
             'email',
             'name', 
             'description', 

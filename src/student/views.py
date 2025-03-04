@@ -39,9 +39,9 @@ class StudentEducationLevelView(APIView):
     - 404 Not Found: If the provided `education_level_id` does not exist.
 
     Example Usage:
-    - GET /api/student/education-level/
+    - GET /api/students/education-level/
     
-    - POST /api/student/education-level/
+    - POST /api/students/education-level/
     Payload:
     ```json
     {
@@ -49,7 +49,7 @@ class StudentEducationLevelView(APIView):
     }
     ```
 
-    - DELETE /api/student/education-level/
+    - DELETE /api/students/education-level/
     """
     
     permission_classes = [IsStudent]
@@ -59,7 +59,7 @@ class StudentEducationLevelView(APIView):
     def get(self, request):
         student = request.user
         
-        education_level = student.education_level
+        education_level = student.current_education_level
         education_level_data = self.response_serializer(education_level)
 
         return Response(education_level_data.data, status=status.HTTP_200_OK)        
@@ -118,9 +118,9 @@ class StudentTagListView(APIView):
     - 400 Bad Request: If `tag_ids` are invalid or missing.
 
     Example Usage:
-    - GET /api/student/tags/
+    - GET /api/students/tags/
 
-    - POST /api/student/tags/
+    - POST /api/students/tags/
     Payload:
     ```json
     {
@@ -128,7 +128,7 @@ class StudentTagListView(APIView):
     }
     ```
 
-    - DELETE /api/student/tags/
+    - DELETE /api/students/tags/
     Payload:
     ```json
     {
@@ -206,9 +206,9 @@ class StudentInterestListView(APIView):
     - 400 Bad Request: If `interest_ids` are invalid or missing.
 
     Example Usage:
-    - GET /api/student/interests/
+    - GET /api/students/interests/
 
-    - POST /api/student/interests/
+    - POST /api/students/interests/
     Payload:
     ```json
     {
@@ -216,7 +216,7 @@ class StudentInterestListView(APIView):
     }
     ```
 
-    - DELETE /api/student/interests/
+    - DELETE /api/students/interests/
     Payload:
     ```json
     {
@@ -297,9 +297,9 @@ class StudentLocationListView(APIView):
     - 400 Bad Request: If `location_ids` are invalid or missing.
 
     Example Usage:
-    - GET /api/student/preferred-locations/
+    - GET /api/students/preferred-locations/
 
-    - POST /api/student/preferred-locations/
+    - POST /api/students/preferred-locations/
     Payload:
     ```json
     {
@@ -307,7 +307,7 @@ class StudentLocationListView(APIView):
     }
     ```
 
-    - DELETE /api/student/preferred-locations/
+    - DELETE /api/students/preferred-locations/
     Payload:
     ```json
     {
@@ -322,7 +322,7 @@ class StudentLocationListView(APIView):
 
     def get(self,request):
         student = request.user
-        locations = student.prefered_locations.all()
+        locations = student.preferred_locations.all()
         serializer = self.response_serializer(locations,many=True)
         return Response(data=serializer.data,status=status.HTTP_200_OK)
 
@@ -332,13 +332,13 @@ class StudentLocationListView(APIView):
         serailizer.is_valid(raise_exception=True)
         location_ids = serailizer.validated_data['location_ids']
         
-        existing_locations = set(Location.objects.filter(id__in=location_ids).values_list('id', falt=True))
+        existing_locations = set(Location.objects.filter(id__in=location_ids).values_list('id', flat=True))
         missing_locations = set(location_ids) - existing_locations
         
         if missing_locations:
             return Response({'message': f"Invalid Location IDs: {missing_locations}"}, status=status.HTTP_400_BAD_REQUEST)
         
-        student.prefered_locations.add(*existing_locations)
+        student.preferred_locations.add(*existing_locations)
         return Response({'message': 'Preferred locations added successfully'}, status=status.HTTP_201_CREATED)
     
     def delete(self,request):
@@ -348,7 +348,7 @@ class StudentLocationListView(APIView):
         location_ids = serailizer.validated_data['location_ids']
         
         for location_id in location_ids:
-            student.prefered_locations.remove(location_id)
+            student.preferred_locations.remove(location_id)
         
         return Response({'message':'Preferred locations successfully removed'}, status=status.HTTP_200_OK)
 
@@ -384,9 +384,9 @@ class StudentWishListView(APIView):
     - 400 Bad Request: If `course_id` is invalid or the course does not exist.
 
     Example Usage:
-    - GET /api/student/wishlist/
+    - GET /api/students/wishlist/
 
-    - POST /api/student/wishlist/
+    - POST /api/students/wishlist/
     Payload:
     ```json
     {
@@ -394,7 +394,7 @@ class StudentWishListView(APIView):
     }
     ```
 
-    - DELETE /api/student/wishlist/
+    - DELETE /api/students/wishlist/
     Payload:
     ```json
     {

@@ -75,9 +75,9 @@ INSTALLED_APPS = [
     'student',
     'emailclient',
     'smsclient',
+    'preference',
     'course',
     'test',
-    'preference',
 ]
 
 MIDDLEWARE = [

@@ -2,6 +2,7 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from course.serializers import CourseListSerializer
 from .models import InstituteAdmin
+from .serializers import InstituteAdminSerializer
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from rest_framework import status
@@ -33,3 +34,14 @@ class InstituteCourseListView(APIView):
         obj = institute.offered_courses.all()
         serializer = CourseListSerializer(obj, many=True)
         return Response(serializer.data,status=status.HTTP_200_OK)
+    
+    
+    
+class InstituteDetailView(APIView):
+    
+    permission_classes = [IsStudent]
+    
+    def get(self, request, id):
+        institute = get_object_or_404(InstituteAdmin, id=id)
+        serializer = InstituteAdminSerializer(institute)
+        return Response(serializer.data, status=status.HTTP_200_OK)

@@ -9,11 +9,14 @@ class StudentAdmin(UserAdmin):
     
     fieldsets = UserAdmin.fieldsets + (
         (_("Student Info"), {'fields': ('full_name', 'phone_number', 'email_verified', 'phone_number_verified')}),
+        (_("Preferences"), {'fields': ('wishlist', 'interests', 'current_education_level', 'selected_tags', 'preferred_locations')})
     )
+    
+    filter_horizontal = ('wishlist', 'interests', 'preferred_locations', 'selected_tags')
 
     add_fieldsets = UserAdmin.add_fieldsets + (
         (_("Student Info"), {'fields': ('full_name', 'phone_number')}),
-        (_("Preferences"), {'fields': ('wishlist', 'interests', 'current_education_level')})
+        (_("Preferences"), {'fields': ('wishlist', 'interests', 'current_education_level', 'selected_tags', 'preferred_locations')})
     )
     
     

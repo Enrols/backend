@@ -72,7 +72,7 @@ class Location(models.Model):
         verbose_name_plural = 'Locations'
         
     name = models.CharField(max_length=255, unique=True, null=False)
-    image = models.ImageField(upload_to=constants.IMAGE_UPLOAD_PATH)
+    image = models.ImageField(upload_to=constants.IMAGE_UPLOAD_PATH, blank=True, null=True)
     
     def __str__(self):
         return f"Location: {self.name}"

@@ -24,9 +24,9 @@ urlpatterns = [
     path('', lambda _: redirect('/admin/')),
     path('admin/', admin.site.urls),
     path('api/auth/', include('user.urls')),
-    path('api/student/', include('student.urls')),
+    path('api/students/', include('student.urls')),
     path('api/courses/', include('course.urls')),
-    path('api/instituteadmin/',include('instituteadmin.urls')),
+    path('api/institutes/',include('instituteadmin.urls')),
     path('api/',include('preference.urls'))
 ]
 

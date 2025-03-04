@@ -60,7 +60,7 @@ class EligibilityCriterion(models.Model):
         verbose_name_plural = 'Eligibility Criteria'
 
     course = models.ForeignKey(Course, null=True, on_delete=models.CASCADE, related_name='eligibility_criteria')
-    detail = models.TextField(blank=False, null=False)
+    detail = models.CharField(max_length=255, blank=False, null=False)
     
     def __str__(self):
         return f"El. Cri. {self.detail}"  

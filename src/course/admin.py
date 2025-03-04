@@ -15,32 +15,6 @@ class DurationInline(admin.TabularInline):
     model = Duration
     min_num = 1
     can_delete = False
-
-# class CourseDurationForm(forms.ModelForm):
-#     hours = forms.IntegerField(help_text="Enter duration in hours", initial=0, min_value=0)
-#     days = forms.IntegerField(help_text="Enter duration in days", initial=0, min_value=0)
-#     weeks = forms.IntegerField(help_text="Enter duration in weeks", initial=2, min_value=0)
-#     months = forms.IntegerField(help_text="Enter duration in months", initial=0, min_value=0)
-#     years = forms.IntegerField(help_text="Enter duration in years", initial=0, min_value=0)
-
-#     def clean(self):
-#         cleaned_data = super().clean()
-#         hours = cleaned_data.get('hours', 0)
-#         days = cleaned_data.get('days', 0)
-#         weeks = cleaned_data.get('weeks', 0)
-#         months = cleaned_data.get('months', 0)
-#         years = cleaned_data.get('years', 0)
-        
-#         days = (years * 365) + (months * 30) + (weeks * 7) + days
-
-#         cleaned_data['duration'] = timedelta(hours=hours, days=days)
-
-#         return cleaned_data
-
-#     class Meta:
-#         model = Course
-#         fields = '__all__'
-        
         
 class CourseAdmin(admin.ModelAdmin):
     # form = CourseDurationForm
@@ -49,6 +23,8 @@ class CourseAdmin(admin.ModelAdmin):
     search_fields = ('name', 'offered_by__email')  
     prepopulated_fields = {"slug": ("name",)}
     inlines = [BatchInline, EligibilityCriterionInline, DurationInline]
+
+    filter_horizontal = ('tags', )
 
     def save_model(self, request, obj, form, change):
         """Automatically set offered_by to request.user for non-superusers."""
