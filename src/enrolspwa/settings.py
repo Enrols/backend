@@ -77,7 +77,8 @@ INSTALLED_APPS = [
     'smsclient',
     'course',
     'test',
-    'drf_yasg' # should be at the end
+    'drf_spectacular',
+    'drf_spectacular_sidecar',
 ]
 
 MIDDLEWARE = [
@@ -118,6 +119,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",
     ),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema"
 }
 
 from datetime import timedelta
@@ -163,16 +165,6 @@ SIMPLE_JWT = {
 }
 
 
-SWAGGER_SETTINGS = {
-    'SECURITY_DEFINITIONS': {
-        'Bearer': {
-            'type': 'apiKey',
-            'name': 'Authorization',
-            'in': 'header'
-        }
-    },
-    'USE_SESSION_AUTH': False,
-}
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases

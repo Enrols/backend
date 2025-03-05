@@ -1,0 +1,7 @@
+#! /bin/bash
+find ./src -path "*/migrations/*.py" -not -name "__init__.py" -delete
+find ./src -path "*/migrations/*.pyc" -delete
+find ./data/dev -path "*.sqlite3" -delete
+
+./server makemigrations
+./server migrate
