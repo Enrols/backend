@@ -8,7 +8,6 @@ from preference.models import Tag, Location
 def default_duration():
     return timedelta(weeks=2)
 
-
 class Course(models.Model):
     class Meta:
         verbose_name_plural = 'Courses'
@@ -36,7 +35,25 @@ class Course(models.Model):
         offered_by_name = self.offered_by.name if self.offered_by else 'N/A'
         return f"Course: {self.name} by {offered_by_name}"
     
-   
+class ApplicationFormField(models.Model):
+    class FieldType(models.TextChoices):
+        TEXT = 'TEXT', 'text'
+        NUMBER = 'NUMBER', 'number'
+        RADIO = 'RADIO', 'radio'
+        DROPDOWN = 'DROPDOWN', 'dropdown'
+        CHECKBOX = 'CHECKBOX', 'checkbox'
+        FILE = 'FILE', 'file'
+        
+    field_name = models.CharField(max_length=255)
+    field_type = models.CharField(max_length=20, choices=FieldType.choices, default=FieldType.TEXT)
+    choices = models.CharField(max_length=255, blank=True, null=True, help_text="Enter values in comma separated format. Leave empty if not required (eg: 'Physics,Chemistry,Biology')")
+    helper_text = models.CharField(max_length=255, help_text="Helper text for field information")
+    required = models.BooleanField(default=False)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="form_fields")
+    
+    def __str__(self):
+        return f"{self.field_name} ({self.get_field_type_display()}) - {self.course.name}"
+    
 class Duration(models.Model):
     class Meta:
         verbose_name_plural = 'Durations'

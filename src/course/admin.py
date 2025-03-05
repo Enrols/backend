@@ -1,6 +1,7 @@
 from django.contrib import admin
-from .models import Course, Batch, Duration, EligibilityCriterion
+from .models import Course, Batch, Duration, EligibilityCriterion, ApplicationFormField
 from user.authentication import get_specific_user
+from django import forms
 
 class BatchInline(admin.TabularInline):
     model = Batch
@@ -15,6 +16,37 @@ class DurationInline(admin.TabularInline):
     model = Duration
     min_num = 1
     can_delete = False
+    
+
+class ApplicationFormFieldForm(forms.ModelForm):
+
+    class Meta:
+        model = ApplicationFormField
+        fields = '__all__'
+
+    def clean_choices(self):
+        field_type = self.cleaned_data.get('field_type')
+        choices = self.cleaned_data.get('choices', '')
+
+        if field_type in ['radio', 'dropdown', 'checkbox']:
+            if not choices:
+                raise forms.ValidationError("Choices are required for radio, dropdown, and checkbox fields.")
+
+            if not all(c.isalnum() for c in choices.split(',')):
+                raise forms.ValidationError("Choices must be in the format: x,y,z,w (no spaces, only alphanumeric).")
+
+        elif choices:
+            raise forms.ValidationError("Choices are only application to fields of type 'radio' / 'checkbox' / 'dropdown'")
+
+        return choices
+
+
+class ApplicationFormFieldInline(admin.TabularInline):
+    """Inline form for ApplicationFormField in CourseAdmin."""
+    model = ApplicationFormField
+    form = ApplicationFormFieldForm
+    extra = 1
+    can_delete = True
         
 class CourseAdmin(admin.ModelAdmin):
     # form = CourseDurationForm
@@ -22,7 +54,7 @@ class CourseAdmin(admin.ModelAdmin):
     list_filter = ('mode', 'offered_by')
     search_fields = ('name', 'offered_by__email')  
     prepopulated_fields = {"slug": ("name",)}
-    inlines = [BatchInline, EligibilityCriterionInline, DurationInline]
+    inlines = [BatchInline, EligibilityCriterionInline, DurationInline, ApplicationFormFieldInline, ]
 
     filter_horizontal = ('tags', )
 
