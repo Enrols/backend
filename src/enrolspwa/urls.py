@@ -23,10 +23,11 @@ from django.shortcuts import redirect
 urlpatterns = [
     path('', lambda _: redirect('/admin/')),
     path('admin/', admin.site.urls),
-    path('auth/', include('user.urls')),
-    path('auth/student/', include('student.urls')),
-    path('auth/institute-admin/', include('instituteadmin.urls')),
-    path('courses/', include('course.urls')),
+    path('api/auth/', include('user.urls')),
+    path('api/students/', include('student.urls')),
+    path('api/courses/', include('course.urls')),
+    path('api/institutes/',include('instituteadmin.urls')),
+    path('api/',include('preference.urls'))
 ]
 
 if settings.DEBUG:

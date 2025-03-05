@@ -1,8 +1,7 @@
 from django.contrib import admin
-from .models import Course, Batch, EligibilityCriterion, Tag, Location
-from datetime import timedelta
-from django import forms
+from .models import Course, Batch, Duration, EligibilityCriterion
 from user.authentication import get_specific_user
+
 class BatchInline(admin.TabularInline):
     model = Batch
     extra = 1
@@ -11,39 +10,21 @@ class EligibilityCriterionInline(admin.TabularInline):
     model = EligibilityCriterion
     extra = 1
     
-class CourseDurationForm(forms.ModelForm):
-    hours = forms.IntegerField(help_text="Enter duration in hours", initial=0, min_value=0)
-    days = forms.IntegerField(help_text="Enter duration in days", initial=0, min_value=0)
-    weeks = forms.IntegerField(help_text="Enter duration in weeks", initial=2, min_value=0)
-    months = forms.IntegerField(help_text="Enter duration in months", initial=0, min_value=0)
-    years = forms.IntegerField(help_text="Enter duration in years", initial=0, min_value=0)
 
-    def clean(self):
-        cleaned_data = super().clean()
-        hours = cleaned_data.get('hours', 0)
-        days = cleaned_data.get('days', 0)
-        weeks = cleaned_data.get('weeks', 0)
-        months = cleaned_data.get('months', 0)
-        years = cleaned_data.get('years', 0)
-        
-        days = (years * 365) + (months * 30) + (weeks * 7) + days
-
-        cleaned_data['duration'] = timedelta(hours=hours, days=days)
-
-        return cleaned_data
-
-    class Meta:
-        model = Course
-        fields = '__all__'
-        
+class DurationInline(admin.TabularInline):
+    model = Duration
+    min_num = 1
+    can_delete = False
         
 class CourseAdmin(admin.ModelAdmin):
-    form = CourseDurationForm
+    # form = CourseDurationForm
     list_display = ('name', 'offered_by', 'mode', 'fee_amount')
     list_filter = ('mode', 'offered_by')
     search_fields = ('name', 'offered_by__email')  
     prepopulated_fields = {"slug": ("name",)}
-    inlines = [BatchInline, EligibilityCriterionInline]
+    inlines = [BatchInline, EligibilityCriterionInline, DurationInline]
+
+    filter_horizontal = ('tags', )
 
     def save_model(self, request, obj, form, change):
         """Automatically set offered_by to request.user for non-superusers."""
@@ -77,51 +58,45 @@ class BatchAdmin(admin.ModelAdmin):
     list_filter = ('course',)
     search_fields = ('course__name', 'location')
 
+    def get_queryset(self, request):
+        """Restrict non-superusers to only their own batches."""
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        
+        institute = get_specific_user(request.user)
+        return qs.filter(course__in=institute.offered_courses.all())
+
+
 class EligibilityCriterionAdmin(admin.ModelAdmin):
     list_display = ('course', 'detail')
     search_fields = ('course__name', 'detail')
 
-class TagAdmin(admin.ModelAdmin):
-    list_display = ('name',)
-    search_fields = ('name',)
+    def get_queryset(self, request):
+        """Restrict non-superusers to El. Cr. of their own courses only."""
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        
+        institute = get_specific_user(request.user)
+        return qs.filter(course__in=institute.offered_courses.all())
+   
 
-    def has_module_permission(self, request):
-        return request.user.is_superuser
+class DurationAdmin(admin.ModelAdmin):
+    list_display = ('course', 'years', 'months', 'weeks', 'days', 'hours' )
+    search_fields = ('course__name', 'years', 'months', 'weeks', 'days', 'hours')
 
-    def has_view_permission(self, request, obj=None):
-        return request.user.is_superuser
-
-    def has_add_permission(self, request):
-        return request.user.is_superuser
-
-    def has_change_permission(self, request, obj=None):
-        return request.user.is_superuser
-
-    def has_delete_permission(self, request, obj=None):
-        return request.user.is_superuser
-    
-class LocationAdmin(admin.ModelAdmin):
-    list_display = ('name', 'image')
-    search_fields = ('name',)
-
-
-    def has_module_permission(self, request):
-        return request.user.is_superuser
-
-    def has_view_permission(self, request, obj=None):
-        return request.user.is_superuser
-
-    def has_add_permission(self, request):
-        return request.user.is_superuser
-
-    def has_change_permission(self, request, obj=None):
-        return request.user.is_superuser
-
-    def has_delete_permission(self, request, obj=None):
-        return request.user.is_superuser
-
-admin.site.register(Tag, TagAdmin)
+    def get_queryset(self, request):
+        """Restrict non-superusers to Durations of their own courses only."""
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        
+        institute = get_specific_user(request.user)
+        return qs.filter(course__in=institute.offered_courses.all())
+ 
+   
 admin.site.register(Course, CourseAdmin)
 admin.site.register(Batch, BatchAdmin)
 admin.site.register(EligibilityCriterion, EligibilityCriterionAdmin)
-admin.site.register(Location, LocationAdmin)
+admin.site.register(Duration, DurationAdmin)

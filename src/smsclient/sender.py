@@ -22,6 +22,7 @@ class SmsClient:
             return self.test_sms(phone_number, otp)
     
     def test_sms(self, phone_number: str, otp: str) -> str:
+        print(f"Test SMS: {otp} (phone number: {phone_number})")
         return "test-sms"
     
     def twilio(self, phone_number: str, otp: str) -> str:
