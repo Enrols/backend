@@ -15,7 +15,7 @@ RUN pip install --no-cache-dir gunicorn
 
 COPY . .
 
-RUN find . -path "*/*.sqlite3" -delete
+RUN ./clear-db
 
 RUN cd src && \
     find . -path "*/migrations/*.py" -not -name "__init__.py" -delete && \
