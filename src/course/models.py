@@ -30,12 +30,15 @@ class Course(models.Model):
     fee_amount = models.IntegerField(validators=[MinValueValidator(0)])
     fee_breakdown = models.FileField(upload_to=constants.FILE_UPLOAD_PATH, blank=True, null=True)
     tags = models.ManyToManyField(Tag, related_name='courses')
+    # form_fields
     
     def __str__(self):
         offered_by_name = self.offered_by.name if self.offered_by else 'N/A'
         return f"Course: {self.name} by {offered_by_name}"
     
 class ApplicationFormField(models.Model):
+    class Meta:
+        verbose_name_plural = 'Application form fields'
     class FieldType(models.TextChoices):
         TEXT = 'TEXT', 'text'
         NUMBER = 'NUMBER', 'number'

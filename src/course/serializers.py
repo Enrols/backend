@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import Course, Batch, Duration, EligibilityCriterion
-from instituteadmin.serializers import InstituteAdminCompactSerializer, InstituteAdminSerializer
-from preference.serializers import TagSerialzer
+from instituteadmin.serializers import InstituteAdminSerializer, InstituteAdminDetailSerializer
+from preference.serializers import TagSerialzer, ApplicationFormField
 
 
 class EligibilityCriterionSerializer(serializers.ModelSerializer):
@@ -36,11 +36,11 @@ class DurationSerializer(serializers.ModelSerializer):
         ]
 
 
-class CourseListSerializer(serializers.ModelSerializer):    
+class CourseSerializer(serializers.ModelSerializer):    
     """For the card view of course"""
-    offered_by = InstituteAdminCompactSerializer(many=False)
+    offered_by = InstituteAdminSerializer(many=False)
     tags = TagSerialzer(many=True)
-    batches = BatchSerializer(BatchSerializer,many=True)
+    batches = BatchSerializer(many=True)
     # commencement_date = serializers.SerializerMethodField()
     duration = DurationSerializer(many=False)
 
@@ -58,15 +58,11 @@ class CourseListSerializer(serializers.ModelSerializer):
             'batches', 
             'duration'
         ]
-    # def get_commencement_date(self, obj):
-    #     first_batch = obj.batches.first()
-    #     return first_batch.commencenment_date
-
 
 class CourseDetailSerializer(serializers.ModelSerializer):
-    offered_by = InstituteAdminSerializer(many=False)
+    offered_by = InstituteAdminDetailSerializer(many=False)
     tags = TagSerialzer(many=True)
-    batches = BatchSerializer(BatchSerializer,many=True)
+    batches = BatchSerializer(many=True)
     duration = DurationSerializer(many=False)
     eligibility_criteria = EligibilityCriterionSerializer(many=True)
     class Meta:
@@ -76,20 +72,32 @@ class CourseDetailSerializer(serializers.ModelSerializer):
             'name',
             'description',
             'mode',
-            'image',##
+            'image',
             'offered_by',
             'batches',
             'tags',
             'duration',
             'eligibility_criteria',
             'fee_amount',
-            'fee_breakdown',##
-            'syllabus',##
+            'fee_breakdown',
+            'syllabus',
             'slug'
         ]
-    def get_image(self,obj):
-        pass
-    def get_fee_breakdown(self,obj):
-        pass
-    def get_syllabus(self,obj):
-        pass
+        
+        
+class ApplicationFormFieldsSerializer(serializers.ModelSerializer):
+    choices = serializers.SerializerMethodField()
+    class Meta:
+        model = ApplicationFormField
+        fields = [
+            'id',
+            'field_name',
+            'field_type',
+            'choices',
+            'helper_text',
+            'required',
+        ]
+        
+        
+    def get_choices(self, obj: ApplicationFormField) -> list:
+        return obj.choices.split(",") if obj.choices else []

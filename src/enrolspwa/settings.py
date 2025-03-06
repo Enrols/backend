@@ -77,6 +77,7 @@ INSTALLED_APPS = [
     'smsclient',
     'preference',
     'course',
+    'application',
     'test',
     'drf_spectacular',
     'drf_spectacular_sidecar',

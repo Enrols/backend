@@ -1,13 +1,12 @@
-from django.shortcuts import render
-from .serializers import CourseListSerializer, CourseDetailSerializer
-from .serializers import BatchSerializer
+from .serializers import CourseSerializer, CourseDetailSerializer
+from .serializers import BatchSerializer, ApplicationFormFieldsSerializer
 from rest_framework.views import APIView
 from .models import Course
-from preference.models import Location
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
+from user.authentication import IsStudent
 # Create your views here.
 
 class CourseListView(APIView):
@@ -31,7 +30,7 @@ class CourseListView(APIView):
 
     def get(self, request):
         courses = Course.objects.all()
-        serializer = CourseListSerializer(courses, many=True)
+        serializer = CourseSerializer(courses, many=True)
         return Response(serializer.data,status=status.HTTP_200_OK)
     
 class CourseDetailView(APIView):
@@ -137,4 +136,26 @@ class CourseBathcesListSlugView(APIView):
         course = get_object_or_404(Course, slug=slug)
         batches = course.batches.all()
         serializer = BatchSerializer(batches, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    
+class CourseFormDetailsListView(APIView):
+    
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, id):
+        course = get_object_or_404(Course, id=id)
+        form_fields = course.form_fields.all()
+        serializer = ApplicationFormFieldsSerializer(form_fields, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        
+class CourseFormDetailsListSlugView(APIView):
+    
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, slug):
+        course = get_object_or_404(Course, slug=slug)
+        form_fields = course.form_fields.all()
+        serializer = ApplicationFormFieldsSerializer(form_fields, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

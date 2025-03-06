@@ -9,7 +9,7 @@ class DetailSerializer(serializers.ModelSerializer):
             'info'
         ]
 
-class InstituteAdminSerializer(serializers.ModelSerializer):
+class InstituteAdminDetailSerializer(serializers.ModelSerializer):
     details = DetailSerializer(many=True)
     class Meta:
         model = InstituteAdmin
@@ -24,7 +24,7 @@ class InstituteAdminSerializer(serializers.ModelSerializer):
         ]
 
 
-class InstituteAdminCompactSerializer(serializers.ModelSerializer):
+class InstituteAdminSerializer(serializers.ModelSerializer):
     """id and name of InstituteAdmin"""
     class Meta:
         model = InstituteAdmin

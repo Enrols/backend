@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from .serializers import ForgotPasswordSerializer, ResetPasswordSerializer, LoginOtpSerializer, LoginOtpVerifySerializer, RegisterOtpSerializer, RegisterSerializer
 from student.serializers import StudentSerializer
-from instituteadmin.serializers import InstituteAdminSerializer
+from instituteadmin.serializers import InstituteAdminDetailSerializer
 from django.shortcuts import get_object_or_404
 from student.models import Student
 from .models import User
@@ -29,7 +29,7 @@ class ProfileView(APIView):
 
     User Types:
         - If the user is a student, returns serialized data using `StudentSerializer`.
-        - If the user is an institute admin, returns serialized data using `InstituteAdminSerializer`.
+        - If the user is an institute admin, returns serialized data using `InstituteAdminDetailSerializer`.
 
     Responses:
         - 200 OK: Successfully returns the user's profile data.
@@ -45,7 +45,7 @@ class ProfileView(APIView):
         if user.is_student:
             serializer = StudentSerializer(user)
         elif user.is_institute:
-            serializer = InstituteAdminSerializer(user)
+            serializer = InstituteAdminDetailSerializer(user)
         else:
             return Response({"error": "Invalid user type"}, status=400)
 

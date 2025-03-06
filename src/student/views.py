@@ -4,7 +4,7 @@ from preference.models import EducationLevel
 from rest_framework.response import Response
 from rest_framework import status
 from preference.serializers import TagSerialzer, InterestSerializer, LocationSerializer, EducationLevelSerializer
-from course.serializers import CourseListSerializer
+from course.serializers import CourseSerializer
 from user.authentication import IsStudent
 from .serializers import TagListRequestSerializer, EducationLevelRequestSerializer, InterestRequestSerializer, LocationRequestSerializer, WishListRequestSerializer
 from preference.models import Interest, Tag, Location
@@ -405,7 +405,7 @@ class StudentWishListView(APIView):
     
     permission_classes = [IsStudent]
     request_serializer = WishListRequestSerializer
-    response_serializer = CourseListSerializer
+    response_serializer = CourseSerializer
 
     def get(self, request):
         student = request.user

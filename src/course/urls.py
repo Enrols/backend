@@ -8,4 +8,7 @@ urlpatterns = format_suffix_patterns([
     path('<str:slug>/', CourseDetailSlugView.as_view(), name='course-detail-slug'),
     path('<int:id>/batches/',CourseBatchesListView.as_view(),name='course-batches'),
     path('<str:slug>/batches/', CourseBathcesListSlugView.as_view(), name='course-batches-slug'),
+
+    path('<int:id>/form-details/', CourseFormDetailsListView.as_view(), name='course-form-details'),
+    path('<str:slug>/form-details/', CourseFormDetailsListSlugView.as_view(), name='course-form-details-slug'),
 ])

@@ -49,7 +49,6 @@ class ApplicationFormFieldInline(admin.TabularInline):
     can_delete = True
         
 class CourseAdmin(admin.ModelAdmin):
-    # form = CourseDurationForm
     list_display = ('name', 'offered_by', 'mode', 'fee_amount')
     list_filter = ('mode', 'offered_by')
     search_fields = ('name', 'offered_by__email')  
