@@ -1,13 +1,13 @@
 from rest_framework import serializers
-from .models import Application, ApplicationFormResponseField
-from course.serializers import CourseSerializer, BatchSerializer, ApplicationFormFieldsSerializer
+from .models import Application, ApplicationFormResponseField, DocumentUpload
+from course.serializers import CourseSerializer, BatchSerializer, ApplicationFormFieldsSerializer, RequiredDocumentsSerializer
 from student.serializers import StudentSerializer
-from course.models import Course, Batch
+from course.models import Course, Batch, RequiredDocument, ApplicationFormField
+import constants
 
 class ApplicationFormSerializer(serializers.ModelSerializer):
-    value_text = serializers.CharField(required=False, allow_blank=True)
-    value_number = serializers.FloatField(required=False, allow_blank=True)
-    value_field = serializers.FileField(required=False, allow_blank=True)
+    value_text = serializers.CharField(required=False, allow_null=True)
+    value_number = serializers.FloatField(required=False, allow_null=True)
     form_details = ApplicationFormFieldsSerializer(many=False)
     
     class Meta:
@@ -18,13 +18,25 @@ class ApplicationFormSerializer(serializers.ModelSerializer):
             'form_details',
             'value_text',
             'value_number',
-            'value_file',
         ]
         
+        
+class ApplicationDocumentsSerializer(serializers.ModelSerializer):
+    document_details = RequiredDocumentsSerializer(many=False)
+    
+    
+    class Meta:
+        model = DocumentUpload
+        fields = [
+            'id',
+            'document_details',
+            'file',
+        ]
 
 class ApplicationSerializer(serializers.ModelSerializer):
     course = CourseSerializer(many=False)
     batch_selected = BatchSerializer(many=False)
+
     class Meta:
         model = Application
         fields = [
@@ -35,12 +47,37 @@ class ApplicationSerializer(serializers.ModelSerializer):
             'submitted_on',
             'updated_on',
         ]
+        
+        
+        
+class ApplicationReqDocsSerializer(serializers.Serializer):
+    file = serializers.FileField(
+        max_length=100,
+        allow_empty_file=False,
+        use_url=False,
+    )
+
+    def validate_file(self, value):
+        """
+        Validate file type and size.
+        """
+        allowed_types = ["application/pdf", "image/jpeg", "image/png"]
+        max_size = 5 * 1024 * 1024  # 5MB limit
+
+        if value.content_type not in allowed_types:
+            raise serializers.ValidationError("Only PDF, JPEG, and PNG files are allowed.")
+
+        # if value.size > max_size:
+        #     raise serializers.ValidationError("File size must be less than 5MB.")
+
+        return value
 
 class ApplicationDetailSerializer(serializers.ModelSerializer):
     form_data = ApplicationFormSerializer(many=True)
     course = CourseSerializer(many=False)
     batch_selected = BatchSerializer(many=False)
     applied_by = StudentSerializer(many=False)
+    uploaded_docs = ApplicationDocumentsSerializer(many=True)
     
     class Meta:
         model = Application
@@ -52,6 +89,7 @@ class ApplicationDetailSerializer(serializers.ModelSerializer):
             'date_of_birth',
             
             'form_data',
+            'uploaded_docs',
             'applied_by',
             'course',
             'batch_selected',
@@ -64,28 +102,27 @@ class ApplicationDetailSerializer(serializers.ModelSerializer):
         read_only_fields = ['submitted_on', 'updated_on', 'status']
 
 class ApplicationFormCreateSerializer(serializers.ModelSerializer):
-    value_text = serializers.CharField(required=False, allow_blank=True)
+    value_text = serializers.CharField(required=False, allow_null=True)
     value_number = serializers.FloatField(required=False, allow_null=True)
-    value_file = serializers.FileField(required=False, allow_null=True)
-    form_details = serializers.PrimaryKeyRelatedField(queryset=ApplicationFormResponseField.objects.all())  # Only ID for POST
-
+    form_details = serializers.PrimaryKeyRelatedField(queryset=ApplicationFormField.objects.all())  # Only ID for POST
+    
     class Meta:
         model = ApplicationFormResponseField
         fields = [
             'form_details',
             'value_text',
             'value_number',
-            'value_file',
         ]
 
 class ApplicationRequestSerializer(serializers.Serializer):
     course = serializers.PrimaryKeyRelatedField(queryset=Course.objects.all())
     batch_selected = serializers.PrimaryKeyRelatedField(queryset=Batch.objects.none())
     form_data = ApplicationFormCreateSerializer(many=True)
-    
+    date_of_birth = serializers.DateField()
     class Meta:
         model = Application
         fields = [
+            'id',
             'full_name',
             'phone_number',
             'email',
@@ -94,6 +131,8 @@ class ApplicationRequestSerializer(serializers.Serializer):
             'course',
             'batch_selected',
         ]
+        
+        read_only_fields = ['id']
 
     def validate(self, data):
         """
@@ -118,3 +157,35 @@ class ApplicationRequestSerializer(serializers.Serializer):
                 self.fields["batch_selected"].queryset = Batch.objects.filter(course_id=course_id)
             except ValueError:
                 pass  # If course_id is invalid, just leave queryset 
+            
+            
+            
+    def create(self, validated_data):
+        form_data = validated_data.pop('form_data', [])
+        applied_by = self.context['user']
+        
+        application = Application.objects.create(applied_by=applied_by, **validated_data)
+        
+        for entry in form_data:
+            ApplicationFormResponseField.objects.create(application=application, **entry)
+            
+        return application
+    
+    
+    def update(self, instance, validated_data):
+        instance.full_name = validated_data.get('full_name', instance.full_name)
+        instance.phone_number = validated_data.get('phone_number', instance.phone_number)
+        instance.email = validated_data.get('email', instance.email)
+        instance.date_of_birth = validated_data.get('date_of_birth', instance.date_of_birth)
+        
+        instance.course = validated_data.get('course', instance.course)
+        instance.batch_selected = validated_data.get('batch_selected', instance.batch_selected)
+
+        form_data = validated_data.get('form_data', None)
+        if form_data is not None:
+            instance.form_data.all().delete()  # Clear old form_data entries
+            for entry in form_data:
+                ApplicationFormResponseField.objects.create(application=instance, **entry)
+
+        instance.save()
+        return instance

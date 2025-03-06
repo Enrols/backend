@@ -1,7 +1,7 @@
 from rest_framework import serializers
-from .models import Course, Batch, Duration, EligibilityCriterion
+from .models import Course, Batch, Duration, EligibilityCriterion, ApplicationFormField, RequiredDocument
 from instituteadmin.serializers import InstituteAdminSerializer, InstituteAdminDetailSerializer
-from preference.serializers import TagSerialzer, ApplicationFormField
+from preference.serializers import TagSerialzer
 
 
 class EligibilityCriterionSerializer(serializers.ModelSerializer):
@@ -39,8 +39,8 @@ class DurationSerializer(serializers.ModelSerializer):
 class CourseSerializer(serializers.ModelSerializer):    
     """For the card view of course"""
     offered_by = InstituteAdminSerializer(many=False)
-    tags = TagSerialzer(many=True)
-    batches = BatchSerializer(many=True)
+    # tags = TagSerialzer(many=True)
+    # batches = BatchSerializer(many=True)
     # commencement_date = serializers.SerializerMethodField()
     duration = DurationSerializer(many=False)
 
@@ -54,8 +54,8 @@ class CourseSerializer(serializers.ModelSerializer):
             'image',
             'slug',
             'offered_by',
-            'tags',
-            'batches', 
+            # 'tags',
+            # 'batches', 
             'duration'
         ]
 
@@ -101,3 +101,13 @@ class ApplicationFormFieldsSerializer(serializers.ModelSerializer):
         
     def get_choices(self, obj: ApplicationFormField) -> list:
         return obj.choices.split(",") if obj.choices else []
+    
+    
+class RequiredDocumentsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RequiredDocument
+        fields = [
+            'id',
+            'file_name',
+            'file_type',
+        ]

@@ -31,6 +31,7 @@ class Course(models.Model):
     fee_breakdown = models.FileField(upload_to=constants.FILE_UPLOAD_PATH, blank=True, null=True)
     tags = models.ManyToManyField(Tag, related_name='courses')
     # form_fields
+    # documents_required
     
     def __str__(self):
         offered_by_name = self.offered_by.name if self.offered_by else 'N/A'
@@ -45,18 +46,29 @@ class ApplicationFormField(models.Model):
         RADIO = 'RADIO', 'radio'
         DROPDOWN = 'DROPDOWN', 'dropdown'
         CHECKBOX = 'CHECKBOX', 'checkbox'
-        FILE = 'FILE', 'file'
         
     field_name = models.CharField(max_length=255)
     field_type = models.CharField(max_length=20, choices=FieldType.choices, default=FieldType.TEXT)
     choices = models.CharField(max_length=255, blank=True, null=True, help_text="Enter values in comma separated format. Leave empty if not required (eg: 'Physics,Chemistry,Biology')")
-    helper_text = models.CharField(max_length=255, help_text="Helper text for field information")
+    helper_text = models.CharField(max_length=255, help_text="Helper text for field information", default="")
     required = models.BooleanField(default=False)
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="form_fields")
     
     def __str__(self):
         return f"{self.field_name} ({self.get_field_type_display()}) - {self.course.name}"
     
+    
+class RequiredDocument(models.Model):
+    class Meta:
+        verbose_name_plural = 'Required Documents'
+        
+    class FileTypes(models.TextChoices):
+        IMAGE = 'IMAGE', 'image (png / jpg)'
+        DOC = 'DOC', 'document (pdf)'
+        
+    file_name = models.CharField(max_length=255)
+    file_type = models.CharField(max_length=20, choices=FileTypes.choices, default=FileTypes.IMAGE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='documents_required')    
 class Duration(models.Model):
     class Meta:
         verbose_name_plural = 'Durations'

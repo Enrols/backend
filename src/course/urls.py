@@ -11,4 +11,7 @@ urlpatterns = format_suffix_patterns([
 
     path('<int:id>/form-details/', CourseFormDetailsListView.as_view(), name='course-form-details'),
     path('<str:slug>/form-details/', CourseFormDetailsListSlugView.as_view(), name='course-form-details-slug'),
+
+    path('<int:id>/docs/', CourseReqDocsListView.as_view(), name='course-req-docs'),
+    path('<str:slug>/docs/', CourseReqDocsListSlugView.as_view(), name='course-req-docs-slug'),
 ])

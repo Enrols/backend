@@ -9,16 +9,24 @@ class DetailAdminInline(admin.TabularInline):
     model = Detail 
     extra = 1
 class InstituteAdminAdmin(UserAdmin):
-    list_display = ('email', 'name', 'is_active', 'is_staff')
+    list_display = ('email', 'name',)
+    list_filter = []
     inlines = [DetailAdminInline]
+    
+    fieldsets = (
+        (_("User Information"), {"fields": ("email", "password")}),
+        (_("Institute Info"), {'fields': ('name', 'description', 'logo')}),
+        (_("Important Dates"), {"fields": ("date_joined",)}),
+    )
 
-    fieldsets = UserAdmin.fieldsets + (
+    add_fieldsets = (
+        (_("Create User"), {
+            "classes": ("wide",),
+            "fields": ("email", "password1", "password2"),
+        }),
         (_("Institute Info"), {'fields': ('name', 'description', 'logo')}),
     )
 
-    add_fieldsets = UserAdmin.add_fieldsets + (
-        (_("Institute Info"), {'fields': ('name', 'description', 'logo')}),
-    )
     
     
 

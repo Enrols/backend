@@ -1,5 +1,5 @@
 from .serializers import CourseSerializer, CourseDetailSerializer
-from .serializers import BatchSerializer, ApplicationFormFieldsSerializer
+from .serializers import BatchSerializer, ApplicationFormFieldsSerializer, RequiredDocumentsSerializer
 from rest_framework.views import APIView
 from .models import Course
 from rest_framework.response import Response
@@ -158,4 +158,24 @@ class CourseFormDetailsListSlugView(APIView):
         course = get_object_or_404(Course, slug=slug)
         form_fields = course.form_fields.all()
         serializer = ApplicationFormFieldsSerializer(form_fields, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    
+class CourseReqDocsListView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, id):
+        course = get_object_or_404(Course, id=id)
+        documents_required = course.documents_required.all()
+        serializer = RequiredDocumentsSerializer(documents_required, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    
+class CourseReqDocsListSlugView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, slug):
+        course = get_object_or_404(Course, slug=slug)
+        documents_required = course.documents_required.all()
+        serializer = RequiredDocumentsSerializer(documents_required, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

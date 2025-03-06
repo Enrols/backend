@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Course, Batch, Duration, EligibilityCriterion, ApplicationFormField
+from .models import Course, Batch, Duration, EligibilityCriterion, ApplicationFormField, RequiredDocument
 from user.authentication import get_specific_user
 from django import forms
 
@@ -27,8 +27,7 @@ class ApplicationFormFieldForm(forms.ModelForm):
     def clean_choices(self):
         field_type = self.cleaned_data.get('field_type')
         choices = self.cleaned_data.get('choices', '')
-
-        if field_type in ['radio', 'dropdown', 'checkbox']:
+        if field_type in ['RADIO', 'DROPDOWN', 'CHECKBOX']:
             if not choices:
                 raise forms.ValidationError("Choices are required for radio, dropdown, and checkbox fields.")
 
@@ -40,7 +39,10 @@ class ApplicationFormFieldForm(forms.ModelForm):
 
         return choices
 
-
+class RequiredDocumentsForm(forms.ModelForm):
+    class Meta:
+        model = RequiredDocument
+        fields = '__all__'
 class ApplicationFormFieldInline(admin.TabularInline):
     """Inline form for ApplicationFormField in CourseAdmin."""
     model = ApplicationFormField
@@ -48,12 +50,19 @@ class ApplicationFormFieldInline(admin.TabularInline):
     extra = 1
     can_delete = True
         
+class RequiredDocumentsInline(admin.TabularInline):
+    """Inline form for Required documents"""
+    model = RequiredDocument
+    form = RequiredDocumentsForm
+    extra = 1
+    can_delete = True        
+        
 class CourseAdmin(admin.ModelAdmin):
     list_display = ('name', 'offered_by', 'mode', 'fee_amount')
     list_filter = ('mode', 'offered_by')
     search_fields = ('name', 'offered_by__email')  
     prepopulated_fields = {"slug": ("name",)}
-    inlines = [BatchInline, EligibilityCriterionInline, DurationInline, ApplicationFormFieldInline, ]
+    inlines = [BatchInline, EligibilityCriterionInline, DurationInline, ApplicationFormFieldInline, RequiredDocumentsInline, ]
 
     filter_horizontal = ('tags', )
 
