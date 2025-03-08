@@ -67,8 +67,8 @@ class ApplicationAdmin(admin.ModelAdmin):
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
-            path('<int:application_id>/approve/', self.admin_site.admin_view(self.approve_view), name='approve_application'),
-            path('<int:application_id>/reject/', self.admin_site.admin_view(self.reject_view), name='reject_application'),
+            path('<int:application_id>/change/approve/', self.admin_site.admin_view(self.approve_view), name='approve_application'),
+            path('<int:application_id>/change/reject/', self.admin_site.admin_view(self.reject_view), name='reject_application'),
         ]
         return custom_urls + urls
 
@@ -89,8 +89,8 @@ class ApplicationAdmin(admin.ModelAdmin):
     def approve_reject_buttons(self, obj):
         return format_html(
             '<a class="button" href="{}">Approve</a> &nbsp; <a class="button" style="color:red;" href="{}">Reject</a>',
-            f"{obj.id}/approve/",
-            f"{obj.id}/reject/",
+            f"{obj.id}/change/approve/",
+            f"{obj.id}/change/reject/",
         )
     
     approve_reject_buttons.allow_tags = True
