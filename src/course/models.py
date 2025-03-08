@@ -55,7 +55,7 @@ class ApplicationFormField(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="form_fields")
     
     def __str__(self):
-        return f"{self.field_name} ({self.get_field_type_display()}) - {self.course.name}"
+        return f"{self.field_name} ({self.get_field_type_display()})"
     
     
 class RequiredDocument(models.Model):
@@ -68,7 +68,10 @@ class RequiredDocument(models.Model):
         
     file_name = models.CharField(max_length=255)
     file_type = models.CharField(max_length=20, choices=FileTypes.choices, default=FileTypes.IMAGE)
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='documents_required')    
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='documents_required')
+    
+    def __str__(self):
+        return f"{self.file_name} ({self.file_type})"    
 class Duration(models.Model):
     class Meta:
         verbose_name_plural = 'Durations'

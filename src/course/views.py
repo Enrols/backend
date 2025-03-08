@@ -25,7 +25,6 @@ class CourseListView(APIView):
     Example Usage:
     - GET /api/courses/
     """
-    
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -50,7 +49,6 @@ class CourseDetailView(APIView):
     Example Usage:
     - GET /api/courses/<id>/
     """
-    
     permission_classes = [IsAuthenticated]
 
     def get(self, request, id):
@@ -76,7 +74,6 @@ class CourseDetailSlugView(APIView):
     Example Usage:
     - GET /api/courses/<slug>/
     """
-
     permission_classes = [IsAuthenticated]
     
     def get(self, request, slug):
@@ -102,7 +99,6 @@ class CourseBatchesListView(APIView):
     Example Usage:
     - GET /api/courses/<id>/batches/
     """
-    
     permission_classes = [IsAuthenticated]
 
     def get(self, request, id):
@@ -129,7 +125,6 @@ class CourseBathcesListSlugView(APIView):
     Example Usage:
     - GET /api/courses/<slug>/batches/
     """
-    
     permission_classes = [IsAuthenticated] 
     
     def get(self, request, slug):
@@ -140,7 +135,16 @@ class CourseBathcesListSlugView(APIView):
     
     
 class CourseFormDetailsListView(APIView):
-    
+    """
+    API endpoint to retrieve form details for a specific course using course ID.
+
+    Path Parameters:
+        - `id` (int): ID of the course.
+
+    Returns:
+        - **200 OK**: List of form fields required for the course.
+        - **404 Not Found**: If the course does not exist.
+    """
     permission_classes = [IsAuthenticated]
     
     def get(self, request, id):
@@ -151,7 +155,16 @@ class CourseFormDetailsListView(APIView):
         
         
 class CourseFormDetailsListSlugView(APIView):
-    
+    """
+    API endpoint to retrieve form details for a specific course using course slug.
+
+    Path Parameters:
+        - `slug` (str): Slug of the course.
+
+    Returns:
+        - **200 OK**: List of form fields required for the course.
+        - **404 Not Found**: If the course does not exist.
+    """
     permission_classes = [IsAuthenticated]
     
     def get(self, request, slug):
@@ -162,6 +175,16 @@ class CourseFormDetailsListSlugView(APIView):
     
     
 class CourseReqDocsListView(APIView):
+    """
+    API endpoint to retrieve the list of required documents for a specific course using course ID.
+
+    Path Parameters:
+        - `id` (int): ID of the course.
+
+    Returns:
+        - **200 OK**: List of required documents for the course.
+        - **404 Not Found**: If the course does not exist.
+    """
     permission_classes = [IsAuthenticated]
     
     def get(self, request, id):
@@ -172,6 +195,16 @@ class CourseReqDocsListView(APIView):
     
     
 class CourseReqDocsListSlugView(APIView):
+    """
+    API endpoint to retrieve the list of required documents for a specific course using course slug.
+
+    Path Parameters:
+        - `slug` (str): Slug of the course.
+
+    Returns:
+        - **200 OK**: List of required documents for the course.
+        - **404 Not Found**: If the course does not exist.
+    """
     permission_classes = [IsAuthenticated]
     
     def get(self, request, slug):

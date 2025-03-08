@@ -1,0 +1,14 @@
+{% extends "admin/change_form.html" %}
+
+{% block object-tools-items %}
+    {% if original.status != "ACCEPTED" %}
+        <li>
+            <a href="{{ approve_url }}" class="button">Approve</a>
+        </li>
+    {% endif %}
+    {% if original.status != "REJECTED" %}
+        <li>
+            <a href="{{ reject_url }}" class="button" style="color:red;">Reject</a>
+        </li>
+    {% endif %}
+{% endblock %}

@@ -61,7 +61,7 @@ class Student(User):
         return super().save(*args , **kwargs)
     
     def __str__(self):
-        return f"<< Student: {self.email} >>"
+        return f"Student: {self.full_name} ({self.email})"
     
     
     
