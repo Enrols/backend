@@ -65,6 +65,12 @@ class CourseAdmin(admin.ModelAdmin):
     inlines = [BatchInline, EligibilityCriterionInline, DurationInline, ApplicationFormFieldInline, RequiredDocumentsInline, ]
 
     filter_horizontal = ('tags', )
+    
+    def save_related(self, request, form, formsets, change):
+        """Save Duration object after saving Course object."""
+        super().save_related(request, form, formsets, change)
+        obj = form.instance
+        obj.duration.save()
 
     def save_model(self, request, obj, form, change):
         """Automatically set offered_by to request.user for non-superusers."""
