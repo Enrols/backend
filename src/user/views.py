@@ -8,7 +8,6 @@ from student.models import Student
 from .models import User
 from utils import create_token, decrypt_token
 from rest_framework.response import Response
-from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework import status
 from emailclient.sender import send_password_reset_email, send_verification_email
 import constants
@@ -127,12 +126,12 @@ class ResetPasswordView(APIView):
         data = decrypt_token(token)
         
         if data['status'] is False:
-            raise PermissionDenied("Token not valid")
+            return Response({ 'message': "Token not valid" }, status=status.HTTP_403_FORBIDDEN)
         
         payload = data['payload']
         
         if 'email' not in payload:
-            raise ValidationError("email not found in token")
+            return Response({ 'message': "email not found in token"}, status=status.HTTP_400_BAD_REQUEST)
         
         
         serializer = self.serializer_class(data=request.data)
@@ -203,12 +202,12 @@ class VerifyEmailTokenView(APIView):
         data = decrypt_token(token)
         
         if data['status'] is False:
-            raise PermissionDenied("Token not valid")
+            return Response({ 'message': "Token not valid" }, status=status.HTTP_403_FORBIDDEN)
         
         payload = data['payload']
         
         if 'email' not in payload:
-            raise ValidationError("email not found in token")
+            return Response({ 'message': "Email not found in token" }, status=status.HTTP_400_BAD_REQUEST)
         
         email = payload['email']
         user = get_object_or_404(Student, email=email)
@@ -295,7 +294,7 @@ class LoginOtpVerifyView(APIView):
         
         data = decrypt_token(token)
         if data['status'] is False:
-            raise PermissionDenied("Token not valid")
+            return Response({ 'message': "Token not valid" }, status=status.HTTP_403_FORBIDDEN)
         
         payload = data['payload']
         decoded_otp = payload['otp']
@@ -311,7 +310,7 @@ class LoginOtpVerifyView(APIView):
                 'refresh_token': str(refresh_token),
             })
         else:
-            raise PermissionDenied('OTP not valid')
+            return Response({ 'message': "OTP not valid"}, status=status.HTTP_403_FORBIDDEN)
         
         
         
@@ -428,7 +427,7 @@ class PhoneNumberVerifyView(APIView):
         
         data = decrypt_token(token)
         if data['status'] is False:
-            raise PermissionDenied("Token not valid")
+            return Response({ 'message': "Token not valid" }, status=status.HTTP_403_FORBIDDEN)
         
         payload = data['payload']
         decoded_otp = payload['otp']
@@ -441,4 +440,4 @@ class PhoneNumberVerifyView(APIView):
             user.save()
             return Response({'message': "Phone number verified successfully"})
         else:
-            raise PermissionDenied('OTP not valid')
+            return Response({ 'message': "OTP not valid"}, status=status.HTTP_401_UNAUTHORIZED)
