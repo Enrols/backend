@@ -305,9 +305,13 @@ class LoginOtpVerifyView(APIView):
         if (decoded_otp == otp):
             refresh_token = RefreshToken.for_user(user=user)
             access_token = refresh_token.access_token
+            response_serializer = StudentSerializer(user, many=False)
             return Response({
-                'access_token': str(access_token),
-                'refresh_token': str(refresh_token),
+                'tokens': {
+                    'access_token': str(access_token),
+                    'refresh_token': str(refresh_token),
+                },
+                'user': response_serializer.data
             })
         else:
             return Response({ 'message': "OTP not valid"}, status=status.HTTP_403_FORBIDDEN)
@@ -438,6 +442,16 @@ class PhoneNumberVerifyView(APIView):
         if (decoded_otp == otp):
             user.phone_number_verified = True
             user.save()
-            return Response({'message': "Phone number verified successfully"})
+            
+            refresh_token = RefreshToken.for_user(user=user)
+            access_token = refresh_token.access_token
+            response_serializer = StudentSerializer(user, many=False)
+            return Response({
+                'tokens': {
+                    'access_token': str(access_token),
+                    'refresh_token': str(refresh_token),
+                },
+                'user': response_serializer.data
+            })
         else:
             return Response({ 'message': "OTP not valid"}, status=status.HTTP_401_UNAUTHORIZED)
