@@ -5,8 +5,7 @@ from .models import Course
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
-from user.authentication import IsStudent
+from rest_framework.permissions import AllowAny
 # Create your views here.
 
 class CourseListView(APIView):
@@ -25,7 +24,7 @@ class CourseListView(APIView):
     Example Usage:
     - GET /api/courses/
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request):
         courses = Course.objects.all()
@@ -49,7 +48,7 @@ class CourseDetailView(APIView):
     Example Usage:
     - GET /api/courses/<id>/
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request, id):
         course = get_object_or_404(Course, id=id)
@@ -74,7 +73,7 @@ class CourseDetailSlugView(APIView):
     Example Usage:
     - GET /api/courses/<slug>/
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     
     def get(self, request, slug):
         course = get_object_or_404(Course, slug=slug)
@@ -99,7 +98,7 @@ class CourseBatchesListView(APIView):
     Example Usage:
     - GET /api/courses/<id>/batches/
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request, id):
         course = get_object_or_404(Course, id=id)
@@ -108,7 +107,7 @@ class CourseBatchesListView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     
-class CourseBathcesListSlugView(APIView):
+class CourseBatchesListSlugView(APIView):
     """
     Retrieve a list of locations where a specific course is available.
 
@@ -125,7 +124,7 @@ class CourseBathcesListSlugView(APIView):
     Example Usage:
     - GET /api/courses/<slug>/batches/
     """
-    permission_classes = [IsAuthenticated] 
+    permission_classes = [AllowAny] 
     
     def get(self, request, slug):
         course = get_object_or_404(Course, slug=slug)
@@ -145,7 +144,7 @@ class CourseFormDetailsListView(APIView):
         - **200 OK**: List of form fields required for the course.
         - **404 Not Found**: If the course does not exist.
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     
     def get(self, request, id):
         course = get_object_or_404(Course, id=id)
@@ -165,7 +164,7 @@ class CourseFormDetailsListSlugView(APIView):
         - **200 OK**: List of form fields required for the course.
         - **404 Not Found**: If the course does not exist.
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     
     def get(self, request, slug):
         course = get_object_or_404(Course, slug=slug)
@@ -185,7 +184,7 @@ class CourseReqDocsListView(APIView):
         - **200 OK**: List of required documents for the course.
         - **404 Not Found**: If the course does not exist.
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     
     def get(self, request, id):
         course = get_object_or_404(Course, id=id)
@@ -205,7 +204,7 @@ class CourseReqDocsListSlugView(APIView):
         - **200 OK**: List of required documents for the course.
         - **404 Not Found**: If the course does not exist.
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     
     def get(self, request, slug):
         course = get_object_or_404(Course, slug=slug)

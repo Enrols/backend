@@ -5,6 +5,7 @@ class DetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Detail
         fields = [
+            'id',
             'detail',
             'info'
         ]

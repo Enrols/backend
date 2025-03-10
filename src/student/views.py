@@ -78,14 +78,6 @@ class StudentEducationLevelView(APIView):
 
         return Response({'message': 'Education level added successfully'}, status=status.HTTP_201_CREATED)
     
-    def delete(self,request):
-        student = request.user
-
-        student.current_education_level = None
-        student.save()
-
-        return Response({'message': 'Education level deleted successfully'}, status=status.HTTP_200_OK)
-    
 
 class StudentTagListView(APIView):
     """
@@ -149,31 +141,21 @@ class StudentTagListView(APIView):
 
         return Response(tags_data.data, status=status.HTTP_200_OK)
 
-    def post(self,request):
-        student = request.user
+    def put(self, request):
         serializer = self.request_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        tag_ids = serializer.validated_data['tag_ids']
-        
-        existing_tags = set(Tag.objects.filter(id__in=tag_ids).values_list('id', flat=True))
-        missing_tags = set(tag_ids) - existing_tags
+        new_tag_ids = serializer.validated_data['tag_ids']
+
+        student = request.user
+        existing_tags = set(Tag.objects.filter(id__in=new_tag_ids).values_list('id', flat=True))
+        missing_tags = set(new_tag_ids) - existing_tags
         
         if missing_tags:
             return Response({'message': f"Invalid tag IDs: {missing_tags}"}, status=status.HTTP_400_BAD_REQUEST)
     
-        student.selected_tags.add(*existing_tags)
-        return Response({'message': 'Tags added successfully'}, status=status.HTTP_201_CREATED)
+        student.selected_tags.set(*existing_tags)
 
-    def delete(self,request):
-        serializer = self.request_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        tag_ids = serializer.validated_data['tag_ids']
-        
-        student = request.user
-        for tag_id in tag_ids:
-            student.selected_tags.remove(tag_id)
-
-        return Response({'message': 'Tags removed successfully'}, status=status.HTTP_200_OK)
+        return Response({'message': 'Tags updated successfully'}, status=status.HTTP_200_OK)
     
 class StudentInterestListView(APIView):
     """
@@ -235,35 +217,22 @@ class StudentInterestListView(APIView):
         interests_data = self.response_serializer(interests, many=True)
 
         return Response(interests_data.data, status=status.HTTP_200_OK)
-
-    def post(self,request):
-        student = request.user
+    
+    def put(self, request):
         serializer = self.request_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
-        interest_ids = serializer.validated_data['interest_ids']
+        new_interest_ids = serializer.validated_data['interest_ids']
 
-        existing_interests = set(Interest.objects.filter(id__in=interest_ids).values_list('id', flat=True))
-        missing_interests = set(interest_ids) - existing_interests
+        student = request.user
+        existing_interests = set(Interest.objects.filter(id__in=new_interest_ids).values_list('id', flat=True))
+        missing_interests = set(new_interest_ids) - existing_interests
         
         if missing_interests:
             return Response({'message': f'Invalid interest IDs: {list(missing_interests)}'}, status=status.HTTP_400_BAD_REQUEST)
 
-        student.interests.add(*existing_interests)
-        
-        return Response({'message': 'Interests added successfully'}, status=status.HTTP_201_CREATED)
-    
-    def delete(self,request):
-        student = request.user
-        serializer = self.request_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        
-        interest_ids = serializer.validated_data['interest_ids']
-        
-        for interest_id in interest_ids:
-            student.interests.remove(interest_id)
+        student.interests.set(*existing_interests)
 
-        return Response({'message': 'Interests removed successfully'}, status=status.HTTP_200_OK)
+        return Response({'message': 'Tags updated successfully'}, status=status.HTTP_200_OK)
 
 
 class StudentLocationListView(APIView):
@@ -326,32 +295,22 @@ class StudentLocationListView(APIView):
         serializer = self.response_serializer(locations,many=True)
         return Response(data=serializer.data,status=status.HTTP_200_OK)
 
-    def post(self,request):
-        student = request.user
-        serailizer = self.request_serializer(data=request.data)
-        serailizer.is_valid(raise_exception=True)
-        location_ids = serailizer.validated_data['location_ids']
+    
+    def put(self, request):
+        serializer = self.request_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        new_location_ids = serializer.validated_data['location_ids']
         
-        existing_locations = set(Location.objects.filter(id__in=location_ids).values_list('id', flat=True))
-        missing_locations = set(location_ids) - existing_locations
+        existing_locations = set(Location.objects.filter(id__in=new_location_ids).values_list('id', flat=True))
+        missing_locations = set(new_location_ids) - existing_locations
         
         if missing_locations:
             return Response({'message': f"Invalid Location IDs: {missing_locations}"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        student.preferred_locations.add(*existing_locations)
-        return Response({'message': 'Preferred locations added successfully'}, status=status.HTTP_201_CREATED)
-    
-    def delete(self,request):
-        student = request.user
-        serailizer = self.request_serializer(data=request.data)
-        serailizer.is_valid(raise_exception=True)
-        location_ids = serailizer.validated_data['location_ids']
-        
-        for location_id in location_ids:
-            student.preferred_locations.remove(location_id)
-        
-        return Response({'message':'Preferred locations successfully removed'}, status=status.HTTP_200_OK)
 
+        student = request.user
+        student.preferred_locations.set(existing_locations)  # Replaces existing tags with new ones
+
+        return Response({'message': 'Tags updated successfully'}, status=status.HTTP_200_OK)
 
 class StudentWishListView(APIView):
     """
@@ -414,12 +373,12 @@ class StudentWishListView(APIView):
         
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def post(self, request):
-        student = request.user
-        serializer = self.request_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+
+
         
-        course_id = serializer.validated_data['course_id']
+class StudentWishListUpdateView(APIView):
+    def post(self, request, course_id):
+        student = request.user
 
         if not Course.objects.filter(id=course_id).exists():
             return Response({'message': 'Course does not exist'}, status=status.HTTP_400_BAD_REQUEST)
@@ -428,13 +387,14 @@ class StudentWishListView(APIView):
 
         return Response({'message': 'Course added to wishlist successfully'}, status=status.HTTP_201_CREATED)
     
-    def delete(self, request):
+    
+    def delete(self, request, course_id):
         student = request.user
-        serializer = WishListRequestSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        
-        course_id = serializer.validated_data['course_id']
+
+        if not Course.objects.filter(id=course_id).exists():
+            return Response({'message': 'Course does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+
         student.wishlist.remove(course_id)
 
-        return Response({'message': 'Course deleted from wishlist'},status=status.HTTP_200_OK)
+        return Response({'message': 'Course added to wishlist successfully'}, status=status.HTTP_200_OK)
         

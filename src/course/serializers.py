@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import Course, Batch, Duration, EligibilityCriterion, ApplicationFormField, RequiredDocument
 from instituteadmin.serializers import InstituteAdminSerializer, InstituteAdminDetailSerializer
-from preference.serializers import TagSerialzer
+from preference.serializers import TagSerialzer, InterestSerializer, EducationLevelSerializer
 
 
 class EligibilityCriterionSerializer(serializers.ModelSerializer):
@@ -65,6 +65,8 @@ class CourseDetailSerializer(serializers.ModelSerializer):
     batches = BatchSerializer(many=True)
     duration = DurationSerializer(many=False)
     eligibility_criteria = EligibilityCriterionSerializer(many=True)
+    min_education_level = EducationLevelSerializer(many=False)
+    relevant_interests = InterestSerializer(many=True)
     class Meta:
         model = Course
         fields = [
@@ -76,6 +78,8 @@ class CourseDetailSerializer(serializers.ModelSerializer):
             'offered_by',
             'batches',
             'tags',
+            'min_education_level',
+            'relevant_interests',
             'duration',
             'eligibility_criteria',
             'fee_amount',

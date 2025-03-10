@@ -79,6 +79,7 @@ INSTALLED_APPS = [
     'course',
     'application',
     'test',
+    'advsearch',
     'drf_spectacular',
     'drf_spectacular_sidecar',
 ]
@@ -127,8 +128,8 @@ REST_FRAMEWORK = {
 from datetime import timedelta
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=5),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=20),
     "ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": False,
     "UPDATE_LAST_LOGIN": False,

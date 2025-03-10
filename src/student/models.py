@@ -42,11 +42,11 @@ class Student(User):
     full_name = models.CharField(max_length=255)
     phone_number = models.CharField(max_length=20, unique=True)
     
-    selected_tags = models.ManyToManyField(Tag, blank=True)
-    wishlist = models.ManyToManyField(Course, blank=True)
-    interests = models.ManyToManyField(Interest, blank=True)
-    current_education_level = models.ForeignKey(EducationLevel, on_delete=models.PROTECT, null=True, blank=True) # do not allow deletion of education level if it has a student
-    preferred_locations = models.ManyToManyField(Location, blank=True)
+    selected_tags = models.ManyToManyField(Tag, blank=True, related_name='students')
+    wishlist = models.ManyToManyField(Course, blank=True, related_name='students')
+    interests = models.ManyToManyField(Interest, blank=True, related_name='students')
+    current_education_level = models.ForeignKey(EducationLevel, on_delete=models.PROTECT, null=True, blank=True, related_name='students') # do not allow deletion of education level if it has a student
+    preferred_locations = models.ManyToManyField(Location, blank=True, related_name='students')
     
     email_verified = models.BooleanField(default=False)
     phone_number_verified = models.BooleanField(default=False)

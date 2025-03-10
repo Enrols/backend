@@ -14,6 +14,7 @@ class Tag(models.Model):
     name = models.CharField(max_length=25, unique=True, null=False, default='default-tag')
     type = models.CharField(max_length=20, choices=Types.choices, default=Types.SKILL)
     # courses[]
+    # students[]
 
     def __str__(self):
         return f"Tag: {self.name}"
@@ -73,6 +74,7 @@ class Location(models.Model):
         
     name = models.CharField(max_length=255, unique=True, null=False)
     image = models.ImageField(upload_to=constants.IMAGE_UPLOAD_PATH, blank=True, null=True)
+    # students[]
     
     def __str__(self):
         return f"Location: {self.name}"
@@ -84,6 +86,8 @@ class Interest(models.Model):
         
     name = models.CharField(max_length=25, unique=True, null=False, default='default-interest')
     image = models.ImageField(upload_to=constants.IMAGE_UPLOAD_PATH, blank=True, null=True)
+    # students[]
+    # courses[]
     
     def __str__(self):
         return f"Interest: {self.name}"
@@ -95,6 +99,8 @@ class EducationLevel(models.Model):
         
     name = models.CharField(max_length=25, unique=True, null=False, default='default-edu-level')
     image = models.ImageField(upload_to=constants.IMAGE_UPLOAD_PATH, blank=True, null=True)
+    # students[]
+    # courses
     
     def __str__(self):
         return f"Education Level: {self.name}"

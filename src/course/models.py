@@ -3,7 +3,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from instituteadmin.models import InstituteAdmin
 import constants
 from datetime import timedelta
-from preference.models import Tag, Location
+from preference.models import Tag, Location, EducationLevel, Interest
 
 def default_duration():
     return timedelta(weeks=2)
@@ -30,12 +30,15 @@ class Course(models.Model):
     fee_amount = models.IntegerField(validators=[MinValueValidator(0)])
     fee_breakdown = models.FileField(upload_to=constants.FILE_UPLOAD_PATH, blank=True, null=True)
     tags = models.ManyToManyField(Tag, related_name='courses')
+    min_education_level = models.ForeignKey(EducationLevel, on_delete=models.DO_NOTHING, related_name='courses')
+    relevant_interests = models.ManyToManyField(Interest, related_name='courses')
     # form_fields
     # documents_required
     
     def __str__(self):
         offered_by_name = self.offered_by.name if self.offered_by else 'N/A'
         return f"Course: {self.name} by {offered_by_name}"
+    
     
 class ApplicationFormField(models.Model):
     class Meta:

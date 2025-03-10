@@ -126,7 +126,7 @@ class ResetPasswordView(APIView):
         data = decrypt_token(token)
         
         if data['status'] is False:
-            return Response({ 'message': "Token not valid" }, status=status.HTTP_403_FORBIDDEN)
+            return Response({ 'message': "Token not valid" }, status=status.HTTP_403)
         
         payload = data['payload']
         
@@ -174,7 +174,7 @@ class VerifyEmailView(APIView):
         try:
             send_verification_email(user.email, user.full_name, token)
         except:
-            return Response({"error": "Mail server down"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"message": "Mail server down"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response({ 'message': 'mail sent successfully' })
 
 
@@ -294,7 +294,7 @@ class LoginOtpVerifyView(APIView):
         
         data = decrypt_token(token)
         if data['status'] is False:
-            return Response({ 'message': "Token not valid" }, status=status.HTTP_403_FORBIDDEN)
+            return Response({ 'message': "Token not valid" }, status=status.HTTP_403)
         
         payload = data['payload']
         decoded_otp = payload['otp']
@@ -427,7 +427,7 @@ class PhoneNumberVerifyView(APIView):
         
         data = decrypt_token(token)
         if data['status'] is False:
-            return Response({ 'message': "Token not valid" }, status=status.HTTP_403_FORBIDDEN)
+            return Response({ 'message': "Token not valid" }, status=status.HTTP_403)
         
         payload = data['payload']
         decoded_otp = payload['otp']

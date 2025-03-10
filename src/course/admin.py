@@ -58,13 +58,13 @@ class RequiredDocumentsInline(admin.TabularInline):
     can_delete = True        
         
 class CourseAdmin(admin.ModelAdmin):
-    list_display = ('name', 'offered_by', 'mode', 'fee_amount')
+    list_display = ('name', 'offered_by', 'mode', 'fee_amount', 'min_education_level')
     list_filter = ('mode', 'offered_by')
     search_fields = ('name', 'offered_by__email')  
     prepopulated_fields = {"slug": ("name",)}
     inlines = [BatchInline, EligibilityCriterionInline, DurationInline, ApplicationFormFieldInline, RequiredDocumentsInline, ]
 
-    filter_horizontal = ('tags', )
+    filter_horizontal = ('tags', 'relevant_interests')
     
     def save_related(self, request, form, formsets, change):
         """Save Duration object after saving Course object."""
